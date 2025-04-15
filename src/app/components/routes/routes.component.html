@@ -1,0 +1,64 @@
+<div class="container">
+  <div class="routes-header">
+    <h1>Available Routes</h1>
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="searchRoutes()"
+        placeholder="Search by origin, destination, or route number..."
+        class="search-input"
+      >
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading routes...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="routes-grid">
+    <div *ngFor="let route of filteredRoutes" class="route-card">
+      <div class="route-header">
+        <h3>{{ route.origin }} → {{ route.destination }}</h3>
+        <span class="route-number">Route #{{ route.routeNumber }}</span>
+      </div>
+
+      <div class="route-details">
+        <div class="detail-item">
+          <span class="label">Departure:</span>
+          <span class="value">{{ formatTime(route.departureTime) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Arrival:</span>
+          <span class="value">{{ formatTime(route.arrivalTime) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Duration:</span>
+          <span class="value">{{ formatDuration(route.duration) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Price:</span>
+          <span class="value price">RWF {{ route.price }}</span>
+        </div>
+      </div>
+
+      <div class="route-actions">
+        <button
+          class="btn btn-primary"
+          [routerLink]="['/book', route.id]"
+        >
+          Book Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && filteredRoutes.length === 0" class="no-routes">
+    <p>No routes found matching your search criteria.</p>
+  </div>
+</div>

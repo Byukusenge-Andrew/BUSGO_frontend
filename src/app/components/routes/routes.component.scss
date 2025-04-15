@@ -1,0 +1,113 @@
+.routes-header {
+  margin-bottom: 2rem;
+  text-align: center;
+
+  h1 {
+    color: var(--primary-black);
+    margin-bottom: 1.5rem;
+  }
+}
+
+.search-box {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--text-light);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(255, 76, 48, 0.1);
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 2rem;
+
+  p {
+    margin-top: 1rem;
+    color: var(--text-dark);
+  }
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.route-card {
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.route-header {
+  margin-bottom: 1.5rem;
+
+  h3 {
+    color: var(--primary-black);
+    margin-bottom: 0.5rem;
+  }
+
+  .route-number {
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+}
+
+.route-details {
+  margin-bottom: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+
+  .label {
+    color: var(--text-light);
+  }
+
+  .value {
+    color: var(--text-dark);
+    font-weight: 500;
+
+    &.price {
+      color: var(--primary-red);
+      font-weight: 600;
+    }
+  }
+}
+
+.route-actions {
+  text-align: center;
+}
+
+.no-routes {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .routes-grid {
+    grid-template-columns: 1fr;
+  }
+}

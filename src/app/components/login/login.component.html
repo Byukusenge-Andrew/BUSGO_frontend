@@ -1,0 +1,32 @@
+<div class="login-container">
+  <div class="login-card">
+    <h2>Login to BUSGO</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Enter your email"
+        />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          placeholder="Enter your password"
+        />
+      </div>
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+      <button type="submit" [disabled]="!loginForm.valid">Login</button>
+    </form>
+    <div class="register-link">
+      Don't have an account? <a routerLink="/signup">Register here</a>
+    </div>
+  </div>
+</div>
