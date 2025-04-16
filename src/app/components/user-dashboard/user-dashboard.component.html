@@ -1,0 +1,116 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Welcome, {{ user?.name }}</h1>
+    <p class="last-login">Last login: {{ user?.lastLogin | date:'medium' }}</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Quick Stats -->
+    <div class="stats-card">
+      <h2>Quick Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <i class="fas fa-ticket-alt"></i>
+          <div class="stat-info">
+            <span class="stat-value">{{ stats.activeBookings }}</span>
+            <span class="stat-label">Active Bookings</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-history"></i>
+          <div class="stat-info">
+            <span class="stat-value">{{ stats.totalBookings }}</span>
+            <span class="stat-label">Total Bookings</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <div class="stat-info">
+            <span class="stat-value">{{ stats.rewardsPoints }}</span>
+            <span class="stat-label">Reward Points</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Bookings -->
+    <div class="bookings-card">
+      <div class="card-header">
+        <h2>Active Bookings</h2>
+        <a routerLink="/search" class="new-booking-btn">
+          <i class="fas fa-plus"></i> New Booking
+        </a>
+      </div>
+
+      <div class="bookings-list" *ngIf="activeBookings.length > 0">
+        <div class="booking-item" *ngFor="let booking of activeBookings">
+          <div class="booking-info">
+            <div class="route-info">
+              <span class="from">{{ booking.from }}</span>
+              <i class="fas fa-arrow-right"></i>
+              <span class="to">{{ booking.to }}</span>
+            </div>
+            <div class="journey-details">
+              <span><i class="fas fa-calendar"></i> {{ booking.date | date:'mediumDate' }}</span>
+              <span><i class="fas fa-clock"></i> {{ booking.departureTime }}</span>
+              <span><i class="fas fa-chair"></i> Seat {{ booking.seatNumber }}</span>
+            </div>
+          </div>
+          <div class="booking-actions">
+            <button class="view-ticket" (click)="viewTicket(booking.id)">
+              <i class="fas fa-ticket-alt"></i> View Ticket
+            </button>
+            <button class="cancel-booking" (click)="cancelBooking(booking.id)" *ngIf="booking.canCancel">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-bookings" *ngIf="activeBookings.length === 0">
+        <i class="fas fa-ticket-alt"></i>
+        <p>No active bookings</p>
+        <a routerLink="/search" class="btn-primary">Book a Bus</a>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-card">
+      <h2>Recent Activity</h2>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let activity of recentActivity">
+          <div class="activity-icon" [ngClass]="activity.type">
+            <i [class]="getActivityIcon(activity.type)"></i>
+          </div>
+          <div class="activity-details">
+            <p class="activity-text">{{ activity.description }}</p>
+            <span class="activity-time">{{ activity.timestamp | date:'short' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-card">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <a routerLink="/profile" class="action-item">
+          <i class="fas fa-user"></i>
+          <span>Edit Profile</span>
+        </a>
+        <a routerLink="/my-bookings" class="action-item">
+          <i class="fas fa-history"></i>
+          <span>Booking History</span>
+        </a>
+        <a routerLink="/support" class="action-item">
+          <i class="fas fa-headset"></i>
+          <span>Get Support</span>
+        </a>
+        <a routerLink="/settings" class="action-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

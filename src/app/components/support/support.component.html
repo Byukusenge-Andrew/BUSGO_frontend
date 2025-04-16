@@ -1,0 +1,11 @@
+<div class="support-container">
+  <h1>Support</h1>
+  <form #supportForm="ngForm" (ngSubmit)="submitSupport()">
+    <div class="form-group">
+      <label for="message">How can we help you?</label>
+      <textarea id="message" name="message" [(ngModel)]="support.message" required></textarea>
+    </div>
+    <button type="submit" class="send-btn">Send</button>
+  </form>
+  <div *ngIf="supportSuccess" class="success-msg">Support request sent!</div>
+</div>

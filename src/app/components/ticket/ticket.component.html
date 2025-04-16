@@ -1,0 +1,14 @@
+<div class="ticket-container">
+  <h1>Ticket Details</h1>
+  <div *ngIf="ticket; else loading">
+    <p><strong>Booking ID:</strong> {{ ticket.id }}</p>
+    <p><strong>Route:</strong> {{ ticket.route?.source }} → {{ ticket.route?.destination }}</p>
+    <p><strong>Date:</strong> {{ ticket.travelDate | date:'mediumDate' }}</p>
+    <p><strong>Time:</strong> {{ ticket.travelTime }}</p>
+    <p><strong>Seats:</strong> {{ ticket.seats }}</p>
+    <p><strong>Status:</strong> {{ ticket.status }}</p>
+  </div>
+  <ng-template #loading>
+    <div class="loading">Loading ticket...</div>
+  </ng-template>
+</div>

@@ -1,62 +1,138 @@
 <div class="search-container">
   <div class="search-card">
-    <h2>Search Buses</h2>
+    <h2>Find Your Perfect Bus Journey</h2>
     <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
       <div class="search-fields">
         <div class="form-group">
-          <label for="from">From</label>
-          <input
-            type="text"
-            id="from"
-            formControlName="from"
-            placeholder="Enter departure city"
-          />
+          <mat-form-field appearance="outline">
+            <mat-label>From</mat-label>
+            <input
+              matInput
+              type="text"
+              id="from"
+              formControlName="from"
+              placeholder="Enter departure city"
+              [matAutocomplete]="fromAuto"
+              (input)="onFromInput($event)"
+            />
+            <mat-autocomplete #fromAuto="matAutocomplete" [displayWith]="displayFn">
+              <mat-option *ngFor="let city of filteredFromCities | async" [value]="city">
+                {{city}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
         </div>
         <div class="form-group">
-          <label for="to">To</label>
-          <input
-            type="text"
-            id="to"
-            formControlName="to"
-            placeholder="Enter destination city"
-          />
+          <mat-form-field appearance="outline">
+            <mat-label>To</mat-label>
+            <input
+              matInput
+              type="text"
+              id="to"
+              formControlName="to"
+              placeholder="Enter destination city"
+              [matAutocomplete]="toAuto"
+              (input)="onToInput($event)"
+            />
+            <mat-autocomplete #toAuto="matAutocomplete" [displayWith]="displayFn">
+              <mat-option *ngFor="let city of filteredToCities | async" [value]="city">
+                {{city}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
         </div>
         <div class="form-group">
-          <label for="date">Date</label>
-          <input
-            type="date"
-            id="date"
-            formControlName="date"
-          />
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input
+              matInput
+              type="date"
+              id="date"
+              formControlName="date"
+              [min]="minDate"
+            />
+          </mat-form-field>
         </div>
         <div class="form-group">
-          <label for="passengers">Passengers</label>
-          <input
-            type="number"
-            id="passengers"
-            formControlName="passengers"
-            min="1"
-          />
+          <mat-form-field appearance="outline">
+            <mat-label>Passengers</mat-label>
+            <input
+              matInput
+              type="number"
+              id="passengers"
+              formControlName="passengers"
+              min="1"
+              max="10"
+            />
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Sort By</mat-label>
+            <mat-select id="sortBy" formControlName="sortBy">
+              <mat-option value="price">Price: Low to High</mat-option>
+              <mat-option value="time">Departure Time</mat-option>
+              <mat-option value="duration">Journey Duration</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
-      <button type="submit" [disabled]="loading">
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading || !searchForm.valid" class="search-button">
+        <i class="fas fa-search"></i>
         {{ loading ? 'Searching...' : 'Search Buses' }}
       </button>
     </form>
   </div>
 
   <div class="results-container" *ngIf="searchResults.length > 0">
-    <h3>Available Buses</h3>
+    <div class="results-header">
+      <h3>Available Buses</h3>
+      <div class="results-count">{{ searchResults.length }} buses found</div>
+    </div>
     <div class="bus-list">
       <div class="bus-card" *ngFor="let bus of searchResults">
         <div class="bus-info">
-          <h4>{{ bus.busName }}</h4>
-          <p class="route">{{ bus.from }} → {{ bus.to }}</p>
-          <p class="time">Departure: {{ bus.departureTime }}</p>
-          <p class="price">Price: ${{ bus.price }}</p>
+          <div class="bus-header">
+            <h4>{{ bus.busName }}</h4>
+            <span class="bus-type" [ngClass]="bus.type">{{ bus.type }}</span>
+          </div>
+          <div class="route-info">
+            <div class="departure">
+              <i class="fas fa-clock"></i>
+              <span>{{ bus.departureTime }}</span>
+            </div>
+            <div class="route-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="arrival">
+              <i class="fas fa-clock"></i>
+              <span>{{ bus.arrivalTime }}</span>
+            </div>
+          </div>
+          <div class="journey-details">
+            <span><i class="fas fa-clock"></i> {{ bus.duration }}</span>
+            <span><i class="fas fa-chair"></i> {{ bus.availableSeats }} seats left</span>
+          </div>
+          <div class="price-section">
+            <div class="price">RWF {{ bus.price | number }}</div>
+            <div class="per-passenger">per passenger</div>
+          </div>
         </div>
-        <button (click)="viewBusDetails(bus.id)">View Details</button>
+        <div class="bus-actions">
+          <button class="view-details" (click)="viewBusDetails(bus.id)">
+            <i class="fas fa-info-circle"></i> View Details
+          </button>
+          <button class="book-now" (click)="bookNow(bus.id)">
+            <i class="fas fa-ticket-alt"></i> Book Now
+          </button>
+        </div>
       </div>
     </div>
+  </div>
+
+  <div class="no-results" *ngIf="searched && searchResults.length === 0">
+    <i class="fas fa-search"></i>
+    <h3>No buses found</h3>
+    <p>Try adjusting your search criteria or check back later for new schedules.</p>
   </div>
 </div>

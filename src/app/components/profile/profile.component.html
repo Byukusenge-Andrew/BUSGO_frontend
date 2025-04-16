@@ -1,0 +1,18 @@
+<div class="profile-container">
+  <h1>User Profile</h1>
+  <form #profileForm="ngForm" (ngSubmit)="saveProfile()">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input id="name" name="name" [(ngModel)]="profile.name" required />
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" name="email" [(ngModel)]="profile.email" type="email" required />
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input id="phone" name="phone" [(ngModel)]="profile.phone" />
+    </div>
+    <button type="submit" class="save-btn">Save</button>
+  </form>
+</div>
