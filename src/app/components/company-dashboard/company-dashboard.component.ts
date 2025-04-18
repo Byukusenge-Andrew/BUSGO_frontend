@@ -121,6 +121,9 @@ interface RecentBooking {
         <button mat-raised-button color="warn" routerLink="/company/bookings">
           <mat-icon>confirmation_number</mat-icon> View Bookings
         </button>
+        <button mat-raised-button color="primary" routerLink="/company/add-bus">
+          <mat-icon>add</mat-icon> Add Bus
+        </button>
         <button mat-raised-button routerLink="/company/profile">
           <mat-icon>business</mat-icon> Company Profile
         </button>

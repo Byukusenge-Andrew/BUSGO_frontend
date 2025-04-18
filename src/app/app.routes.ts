@@ -24,6 +24,10 @@ import { CompanyTicketsComponent } from './components/company-tickets/company-ti
 import { CompanySettingsComponent } from './components/company-settings/company-settings.component';
 import { CompanySupportComponent } from './components/company-support/company-support.component';
 import { CompanyPaymentPage } from './pages/company-payment/company-payment.page';
+import { CompanyAddBusComponent } from './components/company-add-bus/company-add-bus.component';
+import { CompanyAddRouteComponent } from './components/company-add-route/company-add-route.component';
+import { CompanyAddTicketComponent } from './components/company-add-ticket/company-add-ticket.component';
+import { AdminAddCompanyComponent } from './admin/components/admin-add-company/admin-add-company.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -37,21 +41,30 @@ export const routes: Routes = [
   { path: 'support', component: SupportComponent },
   { path: 'payment', component: PaymentComponent },
   { path: 'admin/login', component: AdminLoginComponent },
+
   // Company-protected routes
-  { path:'company/dashboard', component: CompanyDashboardComponent, canActivate: [authGuard] },
-  { path:'company/routes', component: CompanyRoutesComponent, canActivate: [authGuard] },
-  { path:'company/schedules', component: CompanySchedulesComponent, canActivate: [authGuard] },
-  { path:'company/tickets', component: CompanyTicketsComponent, canActivate: [authGuard] },
-  { path:'company/settings', component: CompanySettingsComponent, canActivate: [authGuard] },
-  { path:'company/support', component: CompanySupportComponent, canActivate: [authGuard] },
-  { path:'company/payment', component: CompanyPaymentPage, canActivate: [authGuard] },
-  { path:'company/profile', component: CompanyProfileComponent, canActivate: [authGuard] },
-  // Admin-protected module
+  { path: 'company/dashboard', component: CompanyDashboardComponent, canActivate: [authGuard] },
+  { path: 'company/routes', component: CompanyRoutesComponent, canActivate: [authGuard] },
+  { path: 'company/routes/add', component: CompanyAddRouteComponent, canActivate: [authGuard] },
+  { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [authGuard] },
+  { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [authGuard] },
+  { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [authGuard] },
+  { path: 'company/tickets/add', component: CompanyAddTicketComponent, canActivate: [authGuard] },
+  { path: 'company/settings', component: CompanySettingsComponent, canActivate: [authGuard] },
+  { path: 'company/support', component: CompanySupportComponent, canActivate: [authGuard] },
+  { path: 'company/payment', component: CompanyPaymentPage, canActivate: [authGuard] },
+  { path: 'company/profile', component: CompanyProfileComponent, canActivate: [authGuard] },
+
+  // Admin-protected routes
   {
     path: 'admin',
     canActivate: [adminGuard],
-    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
+    children: [
+      { path: 'companies/add', component: AdminAddCompanyComponent },
+      { path: '', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
+    ]
   },
+
   // User-protected routes
   { path: 'dashboard', component: UserDashboardComponent, canActivate: [authGuard] },
   { path: 'routes', component: RoutesComponent, canActivate: [authGuard] },

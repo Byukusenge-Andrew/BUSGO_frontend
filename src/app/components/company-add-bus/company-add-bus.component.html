@@ -1,0 +1,27 @@
+<div class="company-add-bus-container">
+  <h2>Add New Bus</h2>
+<form [formGroup]="addBusForm" (ngSubmit)="onSubmit()" *ngIf="addBusForm">
+    <div class="form-group">
+      <label for="busNumber">Bus Number</label>
+      <input id="busNumber" formControlName="busNumber" type="text" />
+      <div *ngIf="submitted && addBusForm.controls['busNumber'].invalid" class="error">Bus Number is required.</div>
+    </div>
+    <div class="form-group">
+      <label for="capacity">Capacity</label>
+      <input id="capacity" formControlName="capacity" type="number" min="1" />
+      <div *ngIf="submitted && addBusForm.controls['capacity'].invalid" class="error">Capacity is required and must be at least 1.</div>
+    </div>
+    <div class="form-group">
+      <label for="route">Route</label>
+      <input id="route" formControlName="route" type="text" />
+      <div *ngIf="submitted && addBusForm.controls['route'].invalid" class="error">Route is required.</div>
+    </div>
+    <div class="form-group">
+      <label for="driverName">Driver Name</label>
+      <input id="driverName" formControlName="driverName" type="text" />
+    </div>
+    <button type="submit">Add Bus</button>
+  </form>
+  <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+</div>
