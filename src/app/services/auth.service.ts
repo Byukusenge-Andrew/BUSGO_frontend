@@ -9,6 +9,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  role: string;
 }
 
 export interface Company {
@@ -94,7 +95,7 @@ export class AuthService {
   }
 
   adminLogin(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/admin/login`, { email, password })
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/auth/admin/login`, { email, password })
       .pipe(
         tap(response => {
           this.currentUserSubject.next(response.data);

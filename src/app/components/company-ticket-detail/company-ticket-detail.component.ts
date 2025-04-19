@@ -13,7 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, User, Company } from '../../services/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -460,7 +460,14 @@ export class CompanyTicketDetailComponent implements OnInit {
       takeUntil(this.destroy$)
     ).subscribe(user => {
       // Ensure only company users or admins can access
-      if (user?.role !== 'company' && user?.role !== 'admin') {
+      if (!user) {
+        this.error = 'User not authenticated';
+        this.loading = false;
+        return;
+      }
+
+      const userRole = this.authService.currentUserRole;
+      if (userRole !== 'COMPANY' && userRole !== 'ADMIN') {
         this.error = 'You do not have permission to view this ticket';
         this.loading = false;
         return;

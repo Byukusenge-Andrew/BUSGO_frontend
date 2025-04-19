@@ -17,46 +17,31 @@ export class UserService {
     return this.http.put(`${this.apiUrl}/${userId}`, user);
   }
 
-  // Add more methods as needed (login, createUser, etc.)
+  deleteUser(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`);
+  }
+  getUserByEmail(email: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/email/${email}`);
+  }
+  getUserByUsername(username: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/username/${username}`);
+  }
 
   getCurrentUser(): Observable<any> {
-    // In a real app, this would get the current user from localStorage or a token
-    // For now, return a mock user
-    return of({
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      lastLogin: new Date()
-    });
+    if(localStorage.getItem('currentUser')) {
+      return of(JSON.parse(localStorage.getItem('currentUser')!));
+    }
+    return this.http.get(`${this.apiUrl}/current`);
   }
 
   getUserStats(): Observable<any> {
-    // In a real app, this would fetch from the API
-    return of({
-      activeBookings: 2,
-      totalBookings: 5,
-      rewardsPoints: 150
-    });
+    return this.http.get(`${this.apiUrl}/stats`);
   }
 
   getRecentActivity(): Observable<any[]> {
-    // In a real app, this would fetch from the API
-    return of([
-      {
-        type: 'booking',
-        description: 'Booked a bus from Kigali to Musanze',
-        timestamp: new Date(Date.now() - 86400000) // 1 day ago
-      },
-      {
-        type: 'cancellation',
-        description: 'Cancelled booking from Huye to Rubavu',
-        timestamp: new Date(Date.now() - 172800000) // 2 days ago
-      },
-      {
-        type: 'profile',
-        description: 'Updated profile information',
-        timestamp: new Date(Date.now() - 259200000) // 3 days ago
-      }
-    ]);
+    return this.http.get<any[]>(`${this.apiUrl}/activity`);
+  }
+  getUserById(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
   }
 }
