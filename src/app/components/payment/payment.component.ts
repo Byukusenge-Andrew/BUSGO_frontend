@@ -300,7 +300,7 @@ export class PaymentComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading payment methods:', error);
+        console.error(error);
         this.snackBar.open('Failed to load payment methods', 'Close', { duration: 3000 });
       }
     });
@@ -329,7 +329,7 @@ export class PaymentComponent implements OnInit {
       },
       error: (error) => {
         this.processing = false;
-        console.error('Payment processing error:', error);
+        console.error(error);
         this.snackBar.open('Payment failed. Please try again.', 'Close', { duration: 3000 });
       }
     });

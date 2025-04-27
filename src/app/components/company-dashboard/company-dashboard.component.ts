@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,12 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
+import { BookingService } from '../../services/bus-booking.service';
+import { BusService } from '../../services/bus.service';
+import { RouteService } from '../../services/bus-route.service';
+import { Subscription } from 'rxjs';
 
 interface CompanyStats {
   totalBuses: number;
@@ -40,7 +45,8 @@ interface RecentBooking {
     MatDividerModule,
     MatListModule,
     MatBadgeModule,
-    MatChipsModule
+    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   template: `
     <div class="dashboard-container">
@@ -49,141 +55,148 @@ interface RecentBooking {
         <p class="welcome-message">Welcome, {{ companyName }}</p>
       </div>
 
-      <div class="stats-grid">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>directions_bus</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.totalBuses }}</div>
-              <div class="stat-label">Total Buses</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>route</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.activeRoutes }}</div>
-              <div class="stat-label">Active Routes</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>confirmation_number</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.totalBookings }}</div>
-              <div class="stat-label">Total Bookings</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>today</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ stats.todayBookings }}</div>
-              <div class="stat-label">Today's Bookings</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card revenue">
-          <mat-card-content>
-            <div class="stat-icon">
-              <mat-icon>payments</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">RWF {{ stats.revenue | number }}</div>
-              <div class="stat-label">Total Revenue</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading dashboard data...</p>
       </div>
 
-      <div class="dashboard-actions">
-        <button mat-raised-button color="primary" routerLink="/company/routes">
-          <mat-icon>route</mat-icon> Manage Routes
-        </button>
-        <button mat-raised-button color="accent" routerLink="/company/schedules">
-          <mat-icon>schedule</mat-icon> Manage Schedules
-        </button>
-        <button mat-raised-button color="warn" routerLink="/company/bookings">
-          <mat-icon>confirmation_number</mat-icon> View Bookings
-        </button>
-        <button mat-raised-button color="primary" routerLink="/company/add-bus">
-          <mat-icon>add</mat-icon> Add Bus
-        </button>
-        <button mat-raised-button routerLink="/company/profile">
-          <mat-icon>business</mat-icon> Company Profile
-        </button>
-      </div>
-
-      <div class="dashboard-content">
-        <div class="recent-bookings">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Bookings</mat-card-title>
-              <button mat-button color="primary" routerLink="/company/bookings">View All</button>
-            </mat-card-header>
+      <ng-container *ngIf="!loading">
+        <div class="stats-grid">
+          <mat-card class="stat-card">
             <mat-card-content>
-              <mat-list>
-                <mat-list-item *ngFor="let booking of recentBookings">
-                  <div class="booking-item">
-                    <div class="booking-info">
-                      <div class="customer-name">{{ booking.customerName }}</div>
-                      <div class="route-info">{{ booking.route }}</div>
-                      <div class="booking-date">{{ booking.date | date:'mediumDate' }}</div>
-                    </div>
-                    <div class="booking-details">
-                      <mat-chip-listbox>
-                        <mat-chip [color]="getStatusColor(booking.status)" selected>
-                          {{ booking.status }}
-                        </mat-chip>
-                      </mat-chip-listbox>
-                      <div class="booking-amount">RWF {{ booking.amount | number }}</div>
-                    </div>
-                  </div>
-                </mat-list-item>
-                <div *ngIf="recentBookings.length === 0" class="no-bookings">
-                  <p>No recent bookings found</p>
-                </div>
-              </mat-list>
+              <div class="stat-icon">
+                <span>directions_bus</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">{{ stats.totalBuses }}</div>
+                <div class="stat-label">Total Buses</div>
+              </div>
             </mat-card-content>
           </mat-card>
-        </div>
 
-        <div class="quick-actions">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Quick Actions</mat-card-title>
-            </mat-card-header>
+          <mat-card class="stat-card">
             <mat-card-content>
-              <div class="action-buttons">
-                <button mat-stroked-button color="primary" routerLink="/company/routes/add">
-                  <mat-icon>add</mat-icon> Add New Route
-                </button>
-                <button mat-stroked-button color="accent" routerLink="/company/schedules/add">
-                  <mat-icon>add</mat-icon> Create Schedule
-                </button>
-                <button mat-stroked-button routerLink="/company/reports">
-                  <mat-icon>assessment</mat-icon> Generate Report
-                </button>
+              <div class="stat-icon">
+                <span>route</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">{{ stats.activeRoutes }}</div>
+                <div class="stat-label">Active Routes</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <span>confirmation_number</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">{{ stats.totalBookings }}</div>
+                <div class="stat-label">Total Bookings</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <span>today</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">{{ stats.todayBookings }}</div>
+                <div class="stat-label">Today's Bookings</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card revenue">
+            <mat-card-content>
+              <div class="stat-icon">
+                <span>payments</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">RWF {{ stats.revenue | number }}</div>
+                <div class="stat-label">Total Revenue</div>
               </div>
             </mat-card-content>
           </mat-card>
         </div>
-      </div>
+
+        <div class="dashboard-actions">
+          <button mat-raised-button color="primary" routerLink="/company/routes">
+            Manage Routes
+          </button>
+          <button mat-raised-button color="accent" routerLink="/company/schedules">
+            Manage Schedules
+          </button>
+          <button mat-raised-button color="warn" routerLink="/company/bookings">
+             View Bookings
+          </button>
+          <button mat-raised-button color="primary" routerLink="company/buses/add">
+           Add Bus
+          </button>
+          <button mat-raised-button routerLink="/company/profile">
+         Company Profile
+          </button>
+        </div>
+
+        <div class="dashboard-content">
+          <div class="recent-bookings">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Bookings</mat-card-title>
+                <button mat-button color="primary" routerLink="/company/bookings">View All</button>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-list>
+                  <mat-list-item *ngFor="let booking of recentBookings">
+                    <div class="booking-item">
+                      <div class="booking-info">
+                        <div class="customer-name">{{ booking.customerName }}</div>
+                        <div class="route-info">{{ booking.route }}</div>
+                        <div class="booking-date">{{ booking.date | date:'mediumDate' }}</div>
+                      </div>
+                      <div class="booking-details">
+                        <mat-chip-listbox>
+                          <mat-chip [color]="getStatusColor(booking.status)" selected>
+                            {{ booking.status }}
+                          </mat-chip>
+                        </mat-chip-listbox>
+                        <div class="booking-amount">RWF {{ booking.amount | number }}</div>
+                      </div>
+                    </div>
+                  </mat-list-item>
+                  <div *ngIf="recentBookings.length === 0" class="no-bookings">
+                    <p>No recent bookings found</p>
+                  </div>
+                </mat-list>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="quick-actions">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Quick Actions</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="action-buttons">
+                  <button mat-stroked-button color="primary" routerLink="/company/routes/add">
+                  Add New Route
+                  </button>
+                  <button mat-stroked-button color="accent" routerLink="/company/schedules/add">
+                    Create Schedule
+                  </button>
+                  <button mat-stroked-button routerLink="/company/reports">
+                     Generate Report
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -205,6 +218,19 @@ interface RecentBooking {
     .welcome-message {
       color: var(--text-dark);
       margin-top: 0.5rem;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+    }
+
+    .loading-container p {
+      margin-top: 1rem;
+      color: var(--text-dark);
     }
 
     .stats-grid {
@@ -340,63 +366,117 @@ interface RecentBooking {
     }
   `]
 })
-export class CompanyDashboardComponent implements OnInit {
+export class CompanyDashboardComponent implements OnInit, OnDestroy {
   companyName = 'Rwanda Express';
-  stats: CompanyStats = {
-    totalBuses: 15,
-    activeRoutes: 8,
-    totalBookings: 1250,
-    todayBookings: 42,
-    revenue: 18750000
-  };
-  recentBookings: RecentBooking[] = [
-    {
-      id: 'BK001',
-      customerName: 'John Doe',
-      route: 'Kigali - Kampala',
-      date: new Date(2023, 5, 15),
-      seats: 2,
-      amount: 30000,
-      status: 'CONFIRMED'
-    },
-    {
-      id: 'BK002',
-      customerName: 'Jane Smith',
-      route: 'Kigali - Bujumbura',
-      date: new Date(2023, 5, 16),
-      seats: 1,
-      amount: 12000,
-      status: 'PENDING'
-    },
-    {
-      id: 'BK003',
-      customerName: 'Robert Johnson',
-      route: 'Kigali - Gisenyi',
-      date: new Date(2023, 5, 14),
-      seats: 3,
-      amount: 15000,
-      status: 'CONFIRMED'
-    },
-    {
-      id: 'BK004',
-      customerName: 'Emily Davis',
-      route: 'Kigali - Cyangugu',
-      date: new Date(2023, 5, 17),
-      seats: 1,
-      amount: 7000,
-      status: 'CANCELLED'
-    }
-  ];
+  companyId: string | null = null;
+  loading = true;
 
-  constructor(private authService: AuthService) {}
+  stats: CompanyStats = {
+    totalBuses: 0,
+    activeRoutes: 0,
+    totalBookings: 0,
+    todayBookings: 0,
+    revenue: 0
+  };
+
+  recentBookings: RecentBooking[] = [];
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private authService: AuthService,
+    private bookingService: BookingService,
+    private busService: BusService,
+    private routeService: RouteService
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to the currentUser$ observable
-    this.authService.currentUser$.subscribe(user => {
+    const userSub = this.authService.currentUser$.subscribe(user => {
       if (user && 'companyName' in user) {
         this.companyName = user.companyName;
+        this.companyId = user.companyId?.toString() || null;
+        this.loadDashboardData();
       }
     });
+
+    this.subscriptions.push(userSub);
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions to prevent memory leaks
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private loadDashboardData(): void {
+    if (!this.companyId) {
+      this.loading = false;
+      return;
+    }
+
+    // Load buses count
+    const busSub = this.busService.getCompanyBuses(this.companyId).subscribe({
+      next: (buses) => {
+        this.stats.totalBuses = buses.length;
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
+
+    // Load routes count
+    const routeSub = this.routeService.getCompanyRoutes(this.companyId).subscribe({
+      next: (routes) => {
+        this.stats.activeRoutes = routes.filter(route => route.active).length;
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
+
+    // Load bookings data
+    const bookingSub = this.bookingService.getCompanyBookings(this.companyId).subscribe({
+      next: (bookings) => {
+        // Calculate total bookings
+        this.stats.totalBookings = bookings.length;
+
+        // Calculate today's bookings
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        this.stats.todayBookings = bookings.filter(booking => {
+          const bookingDate = new Date(booking.date);
+          bookingDate.setHours(0, 0, 0, 0);
+          return bookingDate.getTime() === today.getTime();
+        }).length;
+
+        // Calculate total revenue
+        this.stats.revenue = bookings.reduce((total, booking) => {
+          return total + (booking.amount || 0);
+        }, 0);
+
+        // Get recent bookings (last 5)
+        this.recentBookings = bookings
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 5)
+          .map(booking => ({
+            id: booking.id,
+            customerName: booking.customerName || 'Unknown Customer',
+            route: booking.routeName || 'Unknown Route',
+            date: new Date(booking.date),
+            seats: booking.seats || 1,
+            amount: booking.amount || 0,
+            status: booking.status as 'CONFIRMED' | 'PENDING' | 'CANCELLED'
+          }));
+
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error(error);
+        this.loading = false;
+      }
+    });
+
+    this.subscriptions.push(busSub, routeSub, bookingSub);
   }
 
   getStatusColor(status: string): string {

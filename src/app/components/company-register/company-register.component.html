@@ -1,0 +1,174 @@
+<div class="register-container">
+  <div class="register-card">
+    <h2>Company Registration</h2>
+    <p class="intro-text">Create your company account to start managing your bus services</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <!-- Company Information Section -->
+      <div class="form-section">
+        <h3>Company Information</h3>
+
+        <div class="form-fields">
+          <div class="form-group">
+            <label for="companyName">Company Name *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-building"></i>
+              <input
+                type="text"
+                id="companyName"
+                formControlName="companyName"
+                placeholder="Enter company name">
+            </div>
+            <div *ngIf="submitted && f['companyName'].errors" class="error-message">
+              <span *ngIf="f['companyName'].errors?.['required']">Company name is required</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactPerson">Contact Person *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                id="contactPerson"
+                formControlName="contactPerson"
+                placeholder="Enter contact person name">
+            </div>
+            <div *ngIf="submitted && f['contactPerson'].errors" class="error-message">
+              <span *ngIf="f['contactPerson'].errors?.['required']">Contact person is required</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactEmail">Email Address *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-envelope"></i>
+              <input
+                type="email"
+                id="contactEmail"
+                formControlName="contactEmail"
+                placeholder="Enter email address">
+            </div>
+            <div *ngIf="submitted && f['contactEmail'].errors" class="error-message">
+              <span *ngIf="f['contactEmail'].errors?.['required']">Email is required</span>
+              <span *ngIf="f['contactEmail'].errors?.['email']">Enter a valid email address</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactPhone">Phone Number *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-phone"></i>
+              <input
+                type="tel"
+                id="contactPhone"
+                formControlName="contactPhone"
+                placeholder="Enter phone number">
+            </div>
+            <div *ngIf="submitted && f['contactPhone'].errors" class="error-message">
+              <span *ngIf="f['contactPhone'].errors?.['required']">Phone number is required</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Business Address *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-map-marker-alt"></i>
+              <input
+                type="text"
+                id="address"
+                formControlName="address"
+                placeholder="Enter business address">
+            </div>
+            <div *ngIf="submitted && f['address'].errors" class="error-message">
+              <span *ngIf="f['address'].errors?.['required']">Business address is required</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="licenseNumber">Business License Number *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-id-card"></i>
+              <input
+                type="text"
+                id="licenseNumber"
+                formControlName="licenseNumber"
+                placeholder="Enter business license number">
+            </div>
+            <div *ngIf="submitted && f['licenseNumber'].errors" class="error-message">
+              <span *ngIf="f['licenseNumber'].errors?.['required']">License number is required</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Information Section -->
+      <div class="form-section">
+        <h3>Account Information</h3>
+
+        <div class="form-fields">
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                id="password"
+                formControlName="password"
+                placeholder="Create a password">
+            </div>
+            <div *ngIf="submitted && f['password'].errors" class="error-message">
+              <span *ngIf="f['password'].errors?.['required']">Password is required</span>
+              <span *ngIf="f['password'].errors?.['minlength']">Password must be at least 6 characters</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password *</label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                placeholder="Confirm your password">
+            </div>
+            <div *ngIf="submitted && f['confirmPassword'].errors" class="error-message">
+              <span *ngIf="f['confirmPassword'].errors?.['required']">Please confirm your password</span>
+              <span *ngIf="f['confirmPassword'].errors?.['passwordMismatch']">Passwords must match</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="terms-checkbox">
+        <input
+          type="checkbox"
+          id="termsAccepted"
+          formControlName="termsAccepted">
+        <label for="termsAccepted">
+          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+        </label>
+      </div>
+      <div *ngIf="submitted && f['termsAccepted'].errors?.['required']" class="error-message terms-error">
+        You must accept the terms and conditions
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="register-button"
+        [disabled]="loading">
+        <i class="fas fa-user-plus"></i>
+        <span *ngIf="!loading">Register Company</span>
+        <span *ngIf="loading">Registering...</span>
+      </button>
+
+      <!-- Login Link -->
+      <div class="login-link">
+        Already have an account? <a routerLink="/login">Log in</a>
+      </div>
+    </form>
+  </div>
+</div>

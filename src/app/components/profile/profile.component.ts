@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -17,17 +18,27 @@ import { MatCardModule } from '@angular/material/card';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,
   ],
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
   profile: any = {};
   loading = true;
-  userId = 1; // TODO: Replace with real user ID from auth
+  userId: string; // Change to string, assuming AuthService provides a valid ID
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private authService: AuthService
+  ) {
+    // Fetch userId from AuthService (assuming it returns a string)
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      throw new Error('User ID not found. Please log in.');
+    }
+    this.userId = userId;
+  }
 
   ngOnInit() {
     this.userService.getUser(this.userId).subscribe({
@@ -38,14 +49,14 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         alert('Failed to load profile');
-      }
+      },
     });
   }
 
   saveProfile() {
     this.userService.updateUser(this.userId, this.profile).subscribe({
       next: () => alert('Profile saved!'),
-      error: () => alert('Failed to save profile')
+      error: () => alert('Failed to save profile'),
     });
   }
 }

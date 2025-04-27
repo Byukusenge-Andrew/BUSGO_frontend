@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BusBookingService } from '../../services/bus-booking.service';
+import {BookingService } from '../../services/bus-booking.service';
 import { Router } from '@angular/router';
-import { BusRouteService } from '../../services/bus-route.service';
+import {RouteService } from '../../services/bus-route.service';
 import { Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -47,7 +47,6 @@ export class BusSearchComponent implements OnInit {
   searched = false;
   minDate = new Date().toISOString().split('T')[0];
 
-  // Cities for autocomplete
   cities = [
     'Kigali',
     'Musanze',
@@ -66,7 +65,7 @@ export class BusSearchComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private busRouteService: BusRouteService,
+    private busRouteService: RouteService,
     private router: Router
   ) {
     this.searchForm = this.fb.group({
@@ -132,7 +131,7 @@ export class BusSearchComponent implements OnInit {
           this.loading = false;
         },
         error: (error: any) => {
-          console.error('Error searching buses:', error);
+          console.error(error);
           this.loading = false;
         }
       });

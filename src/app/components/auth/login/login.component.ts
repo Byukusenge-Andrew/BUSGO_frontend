@@ -206,6 +206,7 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
+        window.location.href = '/dashboard';
       },
       error: (error) => {
         this.error = error.message || 'Login failed. Please check your credentials.';

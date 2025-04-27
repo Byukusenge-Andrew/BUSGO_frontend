@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,18 +12,11 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
-
-interface Company {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  status: string;
-  busCount: number;
-  routeCount: number;
-  registrationDate: Date;
-}
+import { MatTableDataSource } from '@angular/material/table';
+import { AdminService } from '../../../services/admin.service';
+import { Company } from '../../../models/company.model';
+import {UserFormDialogComponent} from '../user-form-dialog/user-form-dialog.component';
+import {AddCompanyDialogComponent} from '../admin-add-company/admin-add-company.component';
 
 @Component({
   selector: 'app-admin-companies',
@@ -48,8 +41,8 @@ interface Company {
     <div class="admin-companies">
       <div class="header">
         <h2>Manage Bus Companies</h2>
-        <button mat-raised-button color="primary" (click)="openAddCompanyDialog()">
-          <mat-icon>add</mat-icon> Add Company
+        <button class="button" mat-raised-button color="primary" (click)="openAddCompanyDialog()">
+         Add Company
         </button>
       </div>
 
@@ -57,12 +50,11 @@ interface Company {
         <mat-form-field appearance="outline">
           <mat-label>Search Companies</mat-label>
           <input matInput (keyup)="applyFilter($event)" placeholder="Search by name, email, or phone" #input>
-          <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
 
       <div class="table-container mat-elevation-z8">
-        <table mat-table [dataSource]="companies" matSort>
+        <table mat-table [dataSource]="dataSource" matSort>
           <!-- ID Column -->
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
@@ -70,29 +62,29 @@ interface Company {
           </ng-container>
 
           <!-- Name Column -->
-          <ng-container matColumnDef="name">
+          <ng-container matColumnDef="companyName">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-            <td mat-cell *matCellDef="let company">{{ company.name }}</td>
+            <td mat-cell *matCellDef="let company">{{ company.companyName }}</td>
           </ng-container>
 
           <!-- Email Column -->
-          <ng-container matColumnDef="email">
+          <ng-container matColumnDef="contactEmail">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-            <td mat-cell *matCellDef="let company">{{ company.email }}</td>
+            <td mat-cell *matCellDef="let company">{{ company.contactEmail }}</td>
           </ng-container>
 
           <!-- Phone Column -->
-          <ng-container matColumnDef="phone">
+          <ng-container matColumnDef="contactPhone">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Phone</th>
-            <td mat-cell *matCellDef="let company">{{ company.phone }}</td>
+            <td mat-cell *matCellDef="let company">{{ company.contactPhone }}</td>
           </ng-container>
 
           <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
             <td mat-cell *matCellDef="let company">
-              <span class="status-badge" [ngClass]="company.status.toLowerCase()">
-                {{ company.status }}
+              <span class="status-badge" [ngClass]="company.active ? 'active' : 'inactive'">
+                {{ company.active ? 'ACTIVE' : 'INACTIVE' }}
               </span>
             </td>
           </ng-container>
@@ -103,7 +95,7 @@ interface Company {
             <td mat-cell *matCellDef="let company">
               <mat-chip-listbox>
                 <mat-chip color="primary" selected>
-                  {{ company.busCount }} Buses
+                  {{ company.busCount || 0 }} Buses
                 </mat-chip>
               </mat-chip-listbox>
             </td>
@@ -115,7 +107,7 @@ interface Company {
             <td mat-cell *matCellDef="let company">
               <mat-chip-listbox>
                 <mat-chip color="accent" selected>
-                  {{ company.routeCount }} Routes
+                  {{ company.routeCount || 0 }} Routes
                 </mat-chip>
               </mat-chip-listbox>
             </td>
@@ -132,13 +124,13 @@ interface Company {
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let company">
               <button mat-icon-button color="primary" (click)="viewCompany(company)">
-                <mat-icon>visibility</mat-icon>
+                <span>visibility</span>
               </button>
               <button mat-icon-button color="accent" (click)="editCompany(company)">
-                <mat-icon>edit</mat-icon>
+                <span>search</span>
               </button>
               <button mat-icon-button color="warn" (click)="deleteCompany(company)">
-                <mat-icon>delete</mat-icon>
+                <span>delete</span>
               </button>
             </td>
           </ng-container>
@@ -158,7 +150,39 @@ interface Company {
   `,
   styles: [`
     .admin-companies {
-      padding: 1rem;
+      padding: 1px;
+
+
+
+      button {
+        display: inline-block;
+        padding: 3px 3px;
+        margin-left: 1px;
+        background-color: #a5230d;
+        color: #ffffff;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        font-weight: 500;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+      }
 
       .header {
         display: flex;
@@ -227,12 +251,17 @@ interface Company {
     }
   `]
 })
-export class AdminCompaniesComponent implements OnInit {
+export class AdminCompaniesComponent implements OnInit, AfterViewInit {
   companies: Company[] = [];
-  displayedColumns: string[] = ['id', 'name', 'email', 'phone', 'status', 'busCount', 'routeCount', 'registrationDate', 'actions'];
-  filteredCompanies: Company[] = [];
+  displayedColumns: string[] = ['id', 'companyName', 'contactEmail', 'contactPhone', 'status', 'busCount', 'routeCount', 'registrationDate', 'actions'];
+  dataSource = new MatTableDataSource<Company>([]);
+  isLoading = false;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
+    private adminService: AdminService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -241,98 +270,179 @@ export class AdminCompaniesComponent implements OnInit {
     this.loadCompanies();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadCompanies(): void {
-    // In a real app, this would fetch from the API
+    this.isLoading = true;
+    this.adminService.getAllCompanies().subscribe({
+      next: (companies) => {
+        // Convert dates to Date objects
+        this.companies = companies.map(company => ({
+          ...company,
+          registrationDate: new Date(company.registrationDate)
+        }));
+        this.dataSource.data = this.companies;
+        this.isLoading = false;
+        console.log(companies);
+      },
+      error: (error) => {
+        console.error(error);
+        this.isLoading = false;
+
+        // Fallback to mock data if API fails
+        this.loadMockCompanies();
+      }
+    });
+  }
+
+  loadMockCompanies(): void {
+    // Mock data for development/testing
     this.companies = [
       {
         id: 1,
-        name: 'Rwanda Express',
-        email: 'info@rwandaexpress.com',
-        phone: '+250 788 123 456',
+        companyId: 1,
+        companyName: 'Rwanda Express',
+        contactEmail: 'info@rwandaexpress.com',
+        contactPhone: '+250 788 123 456',
+        contactPerson: "John Doe",
         address: 'KN 5 Rd, Kigali',
-        status: 'ACTIVE',
+        active: true,
+        licenseNumber: "LIC123456",
         busCount: 15,
         routeCount: 8,
-        registrationDate: new Date(2022, 0, 15)
+        registrationDate: new Date(2022, 0, 15),
+        status: 'ACTIVE'
       },
       {
         id: 2,
-        name: 'Volcano Transport',
-        email: 'contact@volcanotransport.com',
-        phone: '+250 789 234 567',
+        companyId: 2,
+        companyName: 'Volcano Transport',
+        contactEmail: 'contact@volcanotransport.com',
+        contactPhone: '+250 789 234 567',
         address: 'KG 123 St, Kigali',
-        status: 'ACTIVE',
+        active: true,
+        contactPerson: "Jane Smith",
+        licenseNumber: "LIC234567",
         busCount: 12,
         routeCount: 6,
-        registrationDate: new Date(2022, 2, 10)
+        registrationDate: new Date(2022, 2, 10),
+        status: 'ACTIVE'
       },
       {
         id: 3,
-        name: 'Kigali Bus Services',
-        email: 'info@kigalibus.com',
-        phone: '+250 787 345 678',
+        companyId: 3,
+        companyName: 'Kigali Bus Services',
+        contactEmail: 'info@kigalibus.com',
+        contactPhone: '+250 787 345 678',
         address: 'KN 3 Rd, Kigali',
-        status: 'PENDING',
+        active: false,
+        contactPerson: "Mockingbird",
+        licenseNumber: "LIC345678",
         busCount: 5,
         routeCount: 3,
-        registrationDate: new Date(2023, 1, 20)
+        registrationDate: new Date(2023, 1, 20),
+        status: 'ACTIVE'
       },
       {
         id: 4,
-        name: 'Lake Kivu Transport',
-        email: 'info@lakekivutransport.com',
-        phone: '+250 786 456 789',
+        companyId: 4,
+        companyName: 'Lake Kivu Transport',
+        contactEmail: 'info@lakekivutransport.com',
+        contactPhone: '+250 786 456 789',
         address: 'KG 456 Ave, Kigali',
-        status: 'SUSPENDED',
+        active: false,
+        contactPerson: "Robert Johnson",
+        licenseNumber: "LIC456789",
         busCount: 8,
         routeCount: 4,
-        registrationDate: new Date(2022, 5, 5)
+        registrationDate: new Date(2022, 5, 5),
+        status: 'ACTIVE'
       },
       {
         id: 5,
-        name: 'Mountain View Buses',
-        email: 'contact@mountainviewbuses.com',
-        phone: '+250 785 567 890',
+        companyId: 5,
+        companyName: 'Mountain View Buses',
+        contactEmail: 'contact@mountainviewbuses.com',
+        contactPhone: '+250 785 567 890',
         address: 'KN 7 Rd, Kigali',
-        status: 'ACTIVE',
+        active: true,
+        contactPerson: "Sarah Williams",
+        licenseNumber: "LIC567890",
         busCount: 10,
         routeCount: 5,
-        registrationDate: new Date(2022, 8, 12)
+        registrationDate: new Date(2022, 8, 12),
+        status: 'ACTIVE'
       }
     ];
-    this.filteredCompanies = [...this.companies];
+    this.dataSource.data = this.companies;
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value.toLowerCase().trim();
-    this.filteredCompanies = this.companies.filter(company =>
-      company.name.toLowerCase().includes(filterValue) ||
-      company.email.toLowerCase().includes(filterValue) ||
-      company.phone.toLowerCase().includes(filterValue)
-    );
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
-  openAddCompanyDialog(): void {
-    // In a real app, this would open a dialog to add a company
-    this.snackBar.open('Add company functionality will be implemented', 'Close', { duration: 3000 });
-  }
+  // openAddCompanyDialog(): void {
+  //   // TODO: Implement dialog component for adding companies
+  //   this.snackBar.open('Add company functionality will be implemented', 'Close', { duration: 3000 });
+  // }
 
   viewCompany(company: Company): void {
-    // In a real app, this would open a dialog to view company details
-    this.snackBar.open(`View company ${company.name} functionality will be implemented`, 'Close', { duration: 3000 });
+    // TODO: Implement dialog component for viewing company details
+    this.adminService.getCompanyById(company.id).subscribe({
+      next: (companyDetails) => {
+        console.log('Company details:', companyDetails);
+        this.snackBar.open(`View company ${company.companyName} functionality will be implemented`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
   }
 
   editCompany(company: Company): void {
-    // In a real app, this would open a dialog to edit a company
-    this.snackBar.open(`Edit company ${company.name} functionality will be implemented`, 'Close', { duration: 3000 });
+    // TODO: Implement dialog component for editing companies
+    this.snackBar.open(`Edit company ${company.companyName} functionality will be implemented`, 'Close', { duration: 3000 });
   }
 
   deleteCompany(company: Company): void {
-    if (confirm(`Are you sure you want to delete ${company.name}?`)) {
-      // In a real app, this would delete the company from the API
-      this.companies = this.companies.filter(c => c.id !== company.id);
-      this.filteredCompanies = this.filteredCompanies.filter(c => c.id !== company.id);
-      this.snackBar.open(`Company ${company.name} deleted successfully`, 'Close', { duration: 3000 });
+    if (confirm(`Are you sure you want to delete ${company.companyName}?`)) {
+      this.adminService.deleteCompany(company.id).subscribe({
+        next: () => {
+          this.loadCompanies(); // Reload the list after deletion
+        },
+        error: (error) => {
+          console.error(error);
+
+          // If API call fails, update UI optimistically
+          this.companies = this.companies.filter(c => c.id !== company.id);
+          this.dataSource.data = this.companies;
+        }
+      });
     }
+  }
+
+  openAddCompanyDialog(): void {
+    const dialogRef = this.dialog.open(AddCompanyDialogComponent, {
+      width: '500px',
+      data: { title: 'Add New User', user: {} }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminService.createUser(result).subscribe({
+          next: () => {
+            this.loadCompanies();
+          }
+        });
+      }
+    });
   }
 }

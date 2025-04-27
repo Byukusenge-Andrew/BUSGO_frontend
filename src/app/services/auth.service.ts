@@ -37,12 +37,13 @@ export interface AuthResponse {
   token: string;
   role: string;
   data: User | Company;
+  company?: Company;
 }
-
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+
   private currentUserSubject = new BehaviorSubject<User | Company | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
   private userRole = new BehaviorSubject<string | null>(null);
@@ -63,6 +64,17 @@ export class AuthService {
       }
     }
   }
+  getCurrentUserId(): string | null {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser) {
+      if ('companyId' in currentUser) {
+        return currentUser.companyId;
+      }
+      return currentUser.id;
+    }
+    return null;
+  }
+
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
@@ -83,23 +95,49 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/company/login`, { email, password })
       .pipe(
         tap(response => {
-          this.currentUserSubject.next(response.data);
+          console.log(response);
+          // Handle the company property instead of data
+          const companyData = response.company || response.data;
+          if (!companyData) {
+            console.error();
+            return;
+          }
+
+          this.currentUserSubject.next(companyData);
           this.userRole.next(response.role);
           if (isPlatformBrowser(this.platformId)) {
-            localStorage.setItem('currentUser', JSON.stringify(response.data));
+            localStorage.setItem('currentUser', JSON.stringify(companyData));
             localStorage.setItem('userRole', response.role);
             localStorage.setItem('token', response.token);
           }
         })
       );
   }
+  registerCompany(companyData: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/companies`, companyData)
+      .pipe(
+        tap(response => {
+          if (response && response.token) {
+            this.currentUserSubject.next(response.data);
+            this.userRole.next('COMPANY');
+            if (isPlatformBrowser(this.platformId)) {
+              localStorage.setItem('currentUser', JSON.stringify(response.data));
+              localStorage.setItem('userRole', response.role);
+              localStorage.setItem('token', response.token);
+            }
+          }
+        })
+      );
+  }
+
 
   adminLogin(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/auth/admin/login`, { email, password })
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/admin/login`, { email, password })
       .pipe(
         tap(response => {
           this.currentUserSubject.next(response.data);
           this.userRole.next(response.role);
+          console.log(response);
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
@@ -115,11 +153,13 @@ export class AuthService {
         tap(response => {
           this.currentUserSubject.next(response.data);
           this.userRole.next(response.role);
+          console.log(response);
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
             localStorage.setItem('token', response.token);
           }
+
         })
       );
   }
@@ -132,6 +172,7 @@ export class AuthService {
       localStorage.removeItem('userRole');
       localStorage.removeItem('token');
     }
+
   }
 
   get isAuthenticated(): boolean {

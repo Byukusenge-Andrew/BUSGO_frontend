@@ -375,10 +375,21 @@ export class SignupComponent {
     this.authService.signup(signupData).subscribe({
       next: () => {
         this.loading = false;
+        window.location.href = '/dashboard'; // Redirect to login page after successful signup
+
+
       },
+      
       error: (err: HttpErrorResponse) => {
         this.loading = false;
-        this.error = err.error?.message || 'Registration failed. Please try again.';
+        console.log(err);
+        if (err.status === 403) {
+          this.error = 'You do not have permission to perform this action. Please contact support if you believe this is an error.';
+        } else if (err.error?.message) {
+          this.error = err.error.message;
+        } else {
+          this.error = 'Registration failed. Please try again.';
+        }
       }
     });
   }

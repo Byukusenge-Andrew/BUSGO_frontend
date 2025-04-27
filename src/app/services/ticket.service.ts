@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
 
 export interface Ticket {
   id: string;
@@ -43,122 +44,100 @@ export class TicketService {
 
   constructor(private http: HttpClient) {}
 
+  // Helper method to convert backend ticket to frontend format
+  private convertTicket(ticket: any): Ticket {
+    return {
+      ...ticket,
+      id: ticket.id.toString(), // Convert Long to string
+      departureDate: ticket.departureDate ? new Date(ticket.departureDate) : null,
+      checkInTime: ticket.checkInTime ? new Date(ticket.checkInTime) : null,
+      createdAt: ticket.createdAt ? new Date(ticket.createdAt) : null,
+      price: Number(ticket.price),
+      status: ticket.status as 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED',
+      paymentStatus: ticket.paymentStatus as 'PAID' | 'PENDING' | 'REFUNDED',
+      checkInStatus: ticket.checkInStatus as 'NOT_CHECKED_IN' | 'CHECKED_IN'
+    };
+  }
+
   // Get all tickets with optional filters
   getTickets(filter?: TicketFilter): Observable<Ticket[]> {
-    // Mock data for now, would use real API later
-    return of(this.generateMockTickets(25));
+    let params = new HttpParams();
+    if (filter) {
+      (Object.keys(filter) as Array<keyof TicketFilter>).forEach(key => {
+        if (filter[key] !== undefined && filter[key] !== null) {
+          params = params.set(key, filter[key].toString());
+        }
+      });
+    }
+    
+    return this.http.get<any[]>(`${this.apiUrl}`, { params })
+      .pipe(map(tickets => tickets.map(ticket => this.convertTicket(ticket))));
   }
 
   // Get company tickets
   getCompanyTickets(companyId: string, filter?: TicketFilter): Observable<Ticket[]> {
-    // Mock data for now, would use real API later
-    return of(this.generateMockTickets(20));
+    let params = new HttpParams();
+    if (filter) {
+      (Object.keys(filter) as Array<keyof TicketFilter>).forEach(key => {
+        if (filter[key] !== undefined && filter[key] !== null) {
+          params = params.set(key, filter[key].toString());
+        }
+      });
+    }
+    
+    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`, { params })
+      .pipe(map(tickets => tickets.map(ticket => this.convertTicket(ticket))));
   }
 
   // Get user tickets
   getUserTickets(userId: string): Observable<Ticket[]> {
-    // Mock data for now, would use real API later
-    return of(this.generateMockTickets(8));
+    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`)
+      .pipe(map(tickets => tickets.map(ticket => this.convertTicket(ticket))));
   }
 
   // Get ticket by ID
   getTicketById(id: string): Observable<Ticket> {
-    // Mock data for now, would use real API later
-    return of(this.generateMockTickets(1)[0]);
+    return this.http.get<any>(`${this.apiUrl}/${id}`)
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
   // Update ticket status
   updateTicketStatus(id: string, status: string): Observable<Ticket> {
-    // Mock data for now, would use real API later
-    const ticket = this.generateMockTickets(1)[0];
-    ticket.status = status as any;
-    return of(ticket);
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
   // Update check-in status
   updateCheckInStatus(id: string, isCheckedIn: boolean): Observable<Ticket> {
-    // Mock data for now, would use real API later
-    const ticket = this.generateMockTickets(1)[0];
-    ticket.checkInStatus = isCheckedIn ? 'CHECKED_IN' : 'NOT_CHECKED_IN';
-    ticket.checkInTime = isCheckedIn ? new Date() : undefined;
-    return of(ticket);
+    return this.http.patch<any>(`${this.apiUrl}/${id}/check-in`, { isCheckedIn })
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
   // Update ticket notes
   updateTicketNotes(id: string, notes: string): Observable<Ticket> {
-    // Mock data for now, would use real API later
-    const ticket = this.generateMockTickets(1)[0];
-    ticket.notes = notes;
-    return of(ticket);
+    return this.http.patch<any>(`${this.apiUrl}/${id}/notes`, { notes })
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
   // Cancel ticket
   cancelTicket(id: string, reason?: string): Observable<Ticket> {
-    // Mock data for now, would use real API later
-    const ticket = this.generateMockTickets(1)[0];
-    ticket.status = 'CANCELLED';
-    ticket.paymentStatus = 'REFUNDED';
-    return of(ticket);
+    return this.http.patch<any>(`${this.apiUrl}/${id}/cancel`, { reason })
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
   // Get ticket statistics for a company
   getTicketStats(companyId: string): Observable<any> {
-    // Mock data for now, would use real API later
-    return of({
-      totalTickets: 45,
-      confirmedTickets: 25,
-      pendingTickets: 10,
-      cancelledTickets: 5,
-      completedTickets: 5
-    });
+    return this.http.get<any>(`${this.apiUrl}/company/${companyId}/stats`);
+  }
+  
+  // Create a new ticket
+  createTicket(ticket: Partial<Ticket>): Observable<Ticket> {
+    return this.http.post<any>(`${this.apiUrl}`, ticket)
+      .pipe(map(ticket => this.convertTicket(ticket)));
   }
 
-  // Private helper to generate mock tickets
-  private generateMockTickets(count: number): Ticket[] {
-    const tickets: Ticket[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      const statuses = ['CONFIRMED', 'PENDING', 'CANCELLED', 'COMPLETED'];
-      const paymentStatuses = ['PAID', 'PENDING', 'REFUNDED'];
-      const checkInStatuses = ['CHECKED_IN', 'NOT_CHECKED_IN'];
-      const routes = [
-        { name: 'Kigali-Musanze Express', origin: 'Kigali', destination: 'Musanze' },
-        { name: 'Kigali-Huye Express', origin: 'Kigali', destination: 'Huye' },
-        { name: 'Kigali-Rubavu Special', origin: 'Kigali', destination: 'Rubavu' }
-      ];
-      
-      const status = statuses[Math.floor(Math.random() * statuses.length)] as any;
-      const route = routes[Math.floor(Math.random() * routes.length)];
-      const seatCount = Math.floor(Math.random() * 4) + 1;
-      const seats = Array(seatCount).fill(null).map(() => {
-        const row = String.fromCharCode(65 + Math.floor(Math.random() * 8));
-        const col = Math.floor(Math.random() * 9) + 1;
-        return `${row}${col}`;
-      });
-      
-      tickets.push({
-        id: 'T' + (1000 + i),
-        bookingId: 'B' + (2000 + i),
-        routeName: route.name,
-        origin: route.origin,
-        destination: route.destination,
-        departureDate: new Date(Date.now() + (Math.floor(Math.random() * 14) * 86400000)),
-        departureTime: `${Math.floor(Math.random() * 12) + 1}:${Math.random() > 0.5 ? '00' : '30'} ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
-        busRegistration: `RAB ${100 + Math.floor(Math.random() * 900)}`,
-        passengerName: `Passenger ${i + 1}`,
-        passengerEmail: `passenger${i + 1}@example.com`,
-        passengerPhone: Math.random() > 0.3 ? `+250 78${Math.floor(Math.random() * 1000000)}` : undefined,
-        seatNumbers: seats,
-        price: Math.floor(Math.random() * 10000) + 5000,
-        status: status,
-        paymentStatus: status === 'CANCELLED' ? 'REFUNDED' : (status === 'CONFIRMED' ? 'PAID' : paymentStatuses[Math.floor(Math.random() * 2)]) as any,
-        checkInStatus: status === 'COMPLETED' ? 'CHECKED_IN' : checkInStatuses[Math.floor(Math.random() * checkInStatuses.length)] as any,
-        checkInTime: status === 'COMPLETED' ? new Date() : undefined,
-        notes: Math.random() > 0.7 ? 'Some notes about this ticket' : undefined,
-        createdAt: new Date(Date.now() - (Math.floor(Math.random() * 30) * 86400000))
-      });
-    }
-    
-    return tickets;
+  // Delete a ticket
+  deleteTicket(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
-} 
+}

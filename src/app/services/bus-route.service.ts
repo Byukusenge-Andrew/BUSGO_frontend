@@ -1,70 +1,102 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
+
+export interface Route {
+  id: string;
+  origin: string;
+  destination: string;
+  distance: number;
+  duration: number;
+  basePrice: number;
+  companyId: string;
+  active: boolean;
+  createdAt: Date;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class BusRouteService {
+export class RouteService {
   private apiUrl = `${environment.apiUrl}/routes`;
 
   constructor(private http: HttpClient) {}
 
-  getRoutes(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  // Helper method to convert backend route to frontend format
+  private convertRoute(route: any): Route {
+    return {
+      ...route,
+      id: route.id.toString(),
+      companyId: route.companyId.toString(),
+      createdAt: route.createdAt ? new Date(route.createdAt) : new Date()
+    };
   }
 
-  getRouteById(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  // Get all routes
+  getAllRoutes(): Observable<Route[]> {
+    return this.http.get<any[]>(this.apiUrl)
+      .pipe(map(routes => routes.map(route => this.convertRoute(route))));
   }
 
-  searchRoutes(query: string): Observable<any[]> {
+  // Get routes by company ID
+  getCompanyRoutes(companyId: string): Observable<Route[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`)
+      .pipe(map(routes => routes.map(route => this.convertRoute(route))));
+  }
+
+  // Get route by ID
+  getRouteById(id: string): Observable<Route> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`)
+      .pipe(map(route => this.convertRoute(route)));
+  }
+
+  // Search routes
+  searchRoutes(query: string): Observable<Route[]> {
     return this.http.get<any[]>(`${this.apiUrl}/search`, {
       params: { q: query }
-    });
+    }).pipe(map(routes => routes.map(route => this.convertRoute(route))));
   }
 
+  // Search buses by route parameters
   searchBuses(params: any): Observable<any[]> {
-    // In a real app, this would fetch from the API
-    // For now, return mock data
-    return of([
-      {
-        id: '1',
-        busName: 'Express Bus',
-        from: params.from || 'Kigali',
-        to: params.to || 'Musanze',
-        departureTime: '08:00 AM',
-        arrivalTime: '11:00 AM',
-        duration: '3h',
-        price: 5000,
-        type: 'Luxury',
-        availableSeats: 15
-      },
-      {
-        id: '2',
-        busName: 'Comfort Bus',
-        from: params.from || 'Kigali',
-        to: params.to || 'Musanze',
-        departureTime: '10:30 AM',
-        arrivalTime: '01:30 PM',
-        duration: '3h',
-        price: 4500,
-        type: 'Standard',
-        availableSeats: 8
-      },
-      {
-        id: '3',
-        busName: 'Premium Bus',
-        from: params.from || 'Kigali',
-        to: params.to || 'Musanze',
-        departureTime: '02:00 PM',
-        arrivalTime: '05:00 PM',
-        duration: '3h',
-        price: 6000,
-        type: 'Premium',
-        availableSeats: 12
-      }
-    ]);
+    return this.http.get<any[]>(`${this.apiUrl}/search-buses`, { params });
+  }
+
+  // Create a new route
+  createRoute(routeData: Partial<Route>): Observable<Route> {
+    return this.http.post<any>(this.apiUrl, routeData)
+      .pipe(map(route => this.convertRoute(route)));
+  }
+
+  // Update a route
+  updateRoute(id: string, routeData: Partial<Route>): Observable<Route> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, routeData)
+      .pipe(map(route => this.convertRoute(route)));
+  }
+
+  // Delete a route
+  deleteRoute(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Toggle route status (active/inactive)
+  toggleRouteStatus(id: string, active: boolean): Observable<Route> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { active })
+      .pipe(map(route => this.convertRoute(route)));
+  }
+
+  // Get popular routes for a company
+  getPopularRoutes(companyId: string): Observable<{route: Route, bookingCount: number}[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}/popular`)
+      .pipe(map(data => data.map(item => ({
+        route: this.convertRoute(item.route),
+        bookingCount: item.bookingCount
+      }))));
+  }
+
+  getRoutes() {
+
   }
 }

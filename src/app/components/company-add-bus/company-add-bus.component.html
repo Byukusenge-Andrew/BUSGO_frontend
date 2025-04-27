@@ -1,27 +1,90 @@
 <div class="company-add-bus-container">
   <h2>Add New Bus</h2>
-<form [formGroup]="addBusForm" (ngSubmit)="onSubmit()" *ngIf="addBusForm">
+  <form [formGroup]="busForm" (ngSubmit)="onSubmit()" *ngIf="busForm">
     <div class="form-group">
-      <label for="busNumber">Bus Number</label>
-      <input id="busNumber" formControlName="busNumber" type="text" />
-      <div *ngIf="submitted && addBusForm.controls['busNumber'].invalid" class="error">Bus Number is required.</div>
+      <label for="registrationNumber">Registration Number</label>
+      <input id="registrationNumber" formControlName="registrationNumber" type="text" />
+      <div *ngIf="busForm.get('registrationNumber')?.invalid && busForm.get('registrationNumber')?.touched" class="error">
+        Registration Number is required.
+      </div>
     </div>
+
+    <div class="form-group">
+      <label for="model">Bus Model</label>
+      <input id="model" formControlName="model" type="text" />
+      <div *ngIf="busForm.get('model')?.invalid && busForm.get('model')?.touched" class="error">
+        Model is required.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="busType">Bus Type</label>
+      <select id="busType" formControlName="busType">
+        <option *ngFor="let type of busTypes" [value]="type.value">{{ type.viewValue }}</option>
+      </select>
+      <div *ngIf="busForm.get('busType')?.invalid && busForm.get('busType')?.touched" class="error">
+        Bus Type is required.
+      </div>
+    </div>
+
     <div class="form-group">
       <label for="capacity">Capacity</label>
       <input id="capacity" formControlName="capacity" type="number" min="1" />
-      <div *ngIf="submitted && addBusForm.controls['capacity'].invalid" class="error">Capacity is required and must be at least 1.</div>
+      <div *ngIf="busForm.get('capacity')?.invalid && busForm.get('capacity')?.touched" class="error">
+        Capacity is required and must be at least 1.
+      </div>
     </div>
+
+    <div class="form-section">
+      <h3>Amenities</h3>
+      <div class="amenities-grid">
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasAC" formControlName="hasAC">
+          <label for="hasAC">Air Conditioning</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasWifi" formControlName="hasWifi">
+          <label for="hasWifi">WiFi</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasUSB" formControlName="hasUSB">
+          <label for="hasUSB">USB Charging</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasTV" formControlName="hasTV">
+          <label for="hasTV">TV/Entertainment</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasWater" formControlName="hasWater">
+          <label for="hasWater">Drinking Water</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasBathroom" formControlName="hasBathroom">
+          <label for="hasBathroom">Bathroom</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasRecliningSeats" formControlName="hasRecliningSeats">
+          <label for="hasRecliningSeats">Reclining Seats</label>
+        </div>
+        <div class="amenity-checkbox">
+          <input type="checkbox" id="hasLegroom" formControlName="hasLegroom">
+          <label for="hasLegroom">Extra Legroom</label>
+        </div>
+      </div>
+    </div>
+
     <div class="form-group">
-      <label for="route">Route</label>
-      <input id="route" formControlName="route" type="text" />
-      <div *ngIf="submitted && addBusForm.controls['route'].invalid" class="error">Route is required.</div>
+      <label for="notes">Additional Notes</label>
+      <textarea id="notes" formControlName="notes" rows="3"></textarea>
     </div>
-    <div class="form-group">
-      <label for="driverName">Driver Name</label>
-      <input id="driverName" formControlName="driverName" type="text" />
+
+    <div class="form-actions">
+      <button type="button" routerLink="/company/buses">Cancel</button>
+      <button type="submit" [disabled]="busForm.invalid || submitting">
+        <span *ngIf="!submitting">Add Bus</span>
+        <span *ngIf="submitting">Adding...</span>
+      </button>
     </div>
-    <button type="submit">Add Bus</button>
   </form>
-  <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
-  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 </div>
+

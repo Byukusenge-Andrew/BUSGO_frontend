@@ -26,10 +26,14 @@ import { AuthService } from '../../services/auth.service';
     <mat-toolbar color="primary" class="header">
       <div class="header-container">
         <div class="logo-container">
-          <a routerLink="/" class="logo">
-            <span>Bus Booking</span>
-      
+        <div class="logo">
+          <a routerLink="/">
+            <!-- <span class="brand-name">BUSGO</span>
+            <span class="brand-country">Rwanda</span> -->
+            <img alt="busgolog0" src="../../../assets/images/logo.png" width="90" height="80">
+
           </a>
+        </div>
         </div>
 
         <div class="nav-links" *ngIf="!isLoggedIn">
@@ -44,25 +48,22 @@ import { AuthService } from '../../services/auth.service';
           <a mat-button routerLink="/search">Find Buses</a>
           <a mat-button routerLink="/my-bookings">My Bookings</a>
           <a mat-button routerLink="/routes">Routes</a>
+          <a mat-button routerLink="/dashboard">Dashboard</a>
           <button mat-icon-button [matMenuTriggerFor]="userMenu">
-            <mat-icon>account_circle</mat-icon>
+            <img alt="accountsvg" src="../../../assets/images/account_circle.svg" style="fill: #1a1a1a;color: black">
           </button>
           <mat-menu #userMenu="matMenu">
-            <a mat-menu-item routerLink="/profile">
-              <mat-icon>person</mat-icon>
+            <a mat-menu-item routerLink="/profile" class="dropdown">
               <span>Profile</span>
             </a>
-            <a mat-menu-item routerLink="/settings">
-              <mat-icon>settings</mat-icon>
+            <a mat-menu-item routerLink="/settings" class="dropdown">
               <span>Settings</span>
             </a>
-            <a mat-menu-item routerLink="/support">
-              <mat-icon>help</mat-icon>
+            <a mat-menu-item routerLink="/support" class="dropdown">
               <span>Support</span>
             </a>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="logout()">
-              <mat-icon>exit_to_app</mat-icon>
+            <mat-divider class="dropdown"></mat-divider>
+            <button mat-menu-item (click)="logout()" class="dropdown">
               <span>Logout</span>
             </button>
           </mat-menu>
@@ -75,28 +76,23 @@ import { AuthService } from '../../services/auth.service';
           <a mat-button routerLink="/company/schedules">Schedules</a>
           <a mat-button routerLink="/company/bookings">Bookings</a>
           <button mat-icon-button [matMenuTriggerFor]="companyMenu">
-            <mat-icon>business</mat-icon>
+            <img alt="accountsvg" src="../../../assets/images/account_circle.svg" style="fill: #1a1a1a;color: black">
           </button>
           <mat-menu #companyMenu="matMenu">
-            <a mat-menu-item routerLink="/company/profile">
-              <mat-icon>business</mat-icon>
+            <a mat-menu-item routerLink="/company/profile" class="dropdown">
               <span>Company Profile</span>
             </a>
-            <a mat-menu-item routerLink="/company/settings">
-              <mat-icon>settings</mat-icon>
+            <a mat-menu-item routerLink="/company/settings" class="dropdown">
               <span>Settings</span>
             </a>
-            <a mat-menu-item routerLink="/company/payment">
-              <mat-icon>payment</mat-icon>
+            <a mat-menu-item routerLink="/company/payment" class="dropdown">
               <span>Payment</span>
             </a>
-            <a mat-menu-item routerLink="/company/support">
-              <mat-icon>help</mat-icon>
+            <a mat-menu-item routerLink="/company/support" class="dropdown">
               <span>Support</span>
             </a>
-            <mat-divider></mat-divider>
+            <mat-divider class="dropdown"></mat-divider>
             <button mat-menu-item (click)="logout()">
-              <mat-icon>exit_to_app</mat-icon>
               <span>Logout</span>
             </button>
           </mat-menu>
@@ -109,20 +105,17 @@ import { AuthService } from '../../services/auth.service';
           <a mat-button routerLink="/admin/routes">Routes</a>
           <a mat-button routerLink="/admin/users">Users</a>
           <button mat-icon-button [matMenuTriggerFor]="adminMenu">
-            <mat-icon>admin_panel_settings</mat-icon>
+            <img alt="accountsvg" src="../../../assets/images/account_circle.svg" style="fill: #1a1a1a;color: black">
           </button>
           <mat-menu #adminMenu="matMenu">
-            <a mat-menu-item routerLink="/admin/settings">
-              <mat-icon>settings</mat-icon>
+            <a mat-menu-item routerLink="/admin/settings" class="dropdown">
               <span>Settings</span>
             </a>
-            <a mat-menu-item routerLink="/admin/reports">
-              <mat-icon>assessment</mat-icon>
+            <a mat-menu-item routerLink="/admin/reports" class="dropdown">
               <span>Reports</span>
             </a>
-            <mat-divider></mat-divider>
+            <mat-divider class="dropdown"></mat-divider>
             <button mat-menu-item (click)="logout()">
-              <mat-icon>exit_to_app</mat-icon>
               <span>Logout</span>
             </button>
           </mat-menu>
@@ -131,11 +124,29 @@ import { AuthService } from '../../services/auth.service';
     </mat-toolbar>
   `,
   styles: [`
+    .dropdown{
+      background-color: white;
+    }
     .header {
-      position: sticky;
+      position: relative;
       top: 0;
       z-index: 1000;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .brand-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-red);
+      text-decoration: none;
+
+    }
+
+
+    .brand-country {
+      font-size: 1rem;
+      margin-left: 0.5rem;
+      color: var(--text-dark);
+      text-decoration: none;
     }
 
     .header-container {
@@ -146,12 +157,14 @@ import { AuthService } from '../../services/auth.service';
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
+      text-decoration: none;
     }
 
     .logo-container {
       display: flex;
       align-items: center;
-      background-color:red;
+      text-decoration: none;
+
     }
 
     .logo {
@@ -174,6 +187,9 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+    .nav-links mat-menu{
+      background: var(--white);
     }
 
     .nav-links a {
@@ -204,13 +220,15 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
-      
+      const  userRole = this.authService.currentUserRole;
+
       if (user) {
-        if ('role' in user && user.role === 'ADMIN') {
+        if ( userRole === 'ADMIN') {
           this.userType = 'admin';
-        } else if ('role' in user && user.role === 'COMPANY') {
+        } else if (userRole === 'COMPANY') {
           this.userType = 'company';
         } else {
+          console.log("user role set to user")
           this.userType = 'user';
         }
       } else {
@@ -221,5 +239,7 @@ export class HeaderComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+    window.location.href="/";
+
   }
 }

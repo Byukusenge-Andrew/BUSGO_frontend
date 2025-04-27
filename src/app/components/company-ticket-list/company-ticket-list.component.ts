@@ -509,7 +509,7 @@ export class CompanyTicketListComponent implements OnInit {
   confirmedTickets = 0;
   pendingTickets = 0;
   cancelledTickets = 0;
-  
+
   // Filtering
   filterStatus: string | null = null;
   filterDate: Date | null = null;
@@ -558,19 +558,19 @@ export class CompanyTicketListComponent implements OnInit {
 
   loadTickets(): void {
     this.loading = true;
-    
+
     // Create filter
     const filter: any = {};
     if (this.filterStatus) filter.status = this.filterStatus;
     if (this.filterRoute) filter.routeId = this.filterRoute;
     if (this.filterDate) filter.date = this.filterDate;
     if (this.searchTerm) filter.searchTerm = this.searchTerm;
-    
+
     // If admin, get all tickets, otherwise get company tickets
-    const request = this.authService.isAdmin 
+    const request = this.authService.isAdmin
       ? this.ticketService.getTickets(filter)
       : this.ticketService.getCompanyTickets(this.companyId as string, filter);
-    
+
     request.pipe(
       takeUntil(this.destroy$),
       finalize(() => this.loading = false)
@@ -581,7 +581,7 @@ export class CompanyTicketListComponent implements OnInit {
         this.updateStats();
       },
       error: (err: Error) => {
-        console.error('Error loading tickets', err);
+        console.error(err);
         this.error = 'Failed to load tickets. Please try again.';
         this.snackBar.open('Error loading tickets', 'Dismiss', { duration: 3000 });
       }
@@ -618,7 +618,7 @@ export class CompanyTicketListComponent implements OnInit {
 
   sortData(sort: Sort): void {
     const data = [...this.filteredTickets];
-    
+
     if (!sort.active || sort.direction === '') {
       this.filteredTickets = data;
       return;
@@ -649,7 +649,7 @@ export class CompanyTicketListComponent implements OnInit {
     this.pendingTickets = this.tickets.filter(t => t.status === 'PENDING').length;
     this.cancelledTickets = this.tickets.filter(t => t.status === 'CANCELLED').length;
   }
-  
+
   cancelTicket(ticket: Ticket): void {
     if (confirm('Are you sure you want to cancel this ticket?')) {
       this.ticketService.cancelTicket(ticket.id).pipe(
@@ -660,17 +660,17 @@ export class CompanyTicketListComponent implements OnInit {
           this.loadTickets();
         },
         error: (err: Error) => {
-          console.error('Error cancelling ticket', err);
+          console.error(err);
           this.snackBar.open('Failed to cancel ticket', 'Close', { duration: 3000 });
         }
       });
     }
   }
-  
+
   printTicket(ticket: Ticket): void {
     // In real app, would generate a printable version or PDF
     this.snackBar.open('Preparing ticket for printing...', 'Close', { duration: 3000 });
-    
+
     // Simulate print preparation
     setTimeout(() => {
       window.print();

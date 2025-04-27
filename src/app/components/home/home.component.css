@@ -17,7 +17,6 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 200px;
   height: 200px;
   background: #ff4c30;
   -webkit-clip-path: circle(100% at 100% 100%);
@@ -312,7 +311,7 @@
 
 @media (max-width: 1024px) {
   .features-grid,
-  .services-grid {
+.services-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .welcome-content {
@@ -328,7 +327,7 @@
     font-size: 2.5rem;
   }
   .features-grid,
-  .services-grid {
+.services-grid {
     grid-template-columns: 1fr;
   }
   .welcome-section .welcome-image .number {
@@ -336,4 +335,5 @@
     height: 60px;
     font-size: 1.5rem;
   }
-}/*# sourceMappingURL=home.component.css.map */
+}
+/*# sourceMappingURL=home.component.css.map */

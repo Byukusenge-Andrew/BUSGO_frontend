@@ -8,6 +8,7 @@ import { authGuard } from './guards/auth.guard';
 import { RoutesComponent } from './components/routes/routes.component';
 import { AdminLoginComponent } from './components/admin-login/admin-login.component';
 import { adminGuard } from './guards/admin.guard';
+import {companyGuard} from './guards/company.guard';
 import { UserDashboardComponent } from './components/user-dashboard/user-dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { SettingsComponent } from './components/settings/settings.component';
@@ -27,47 +28,52 @@ import { CompanyPaymentPage } from './pages/company-payment/company-payment.page
 import { CompanyAddBusComponent } from './components/company-add-bus/company-add-bus.component';
 import { CompanyAddRouteComponent } from './components/company-add-route/company-add-route.component';
 import { CompanyAddTicketComponent } from './components/company-add-ticket/company-add-ticket.component';
-import { AdminAddCompanyComponent } from './admin/components/admin-add-company/admin-add-company.component';
+
+import {CompanyRegisterComponent} from './components/company-register/company-register.component';
+import {ticketGuard} from './guards/ticket.guard';
+import {userGuard} from './guards/user.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'company/login', component: CompanyLoginComponent },
+  {path: 'company/register', component: CompanyRegisterComponent },
   { path: 'search', component: BusSearchComponent },
-  { path: 'my-bookings', component: MyBookingsComponent },
-  { path: 'ticket/:id', component: TicketComponent },
-  { path: 'settings', component: SettingsComponent },
-  { path: 'support', component: SupportComponent },
-  { path: 'payment', component: PaymentComponent },
+  { path: 'ticket/:id', component: TicketComponent,canActivate:[ticketGuard] },
   { path: 'admin/login', component: AdminLoginComponent },
 
   // Company-protected routes
-  { path: 'company/dashboard', component: CompanyDashboardComponent, canActivate: [authGuard] },
-  { path: 'company/routes', component: CompanyRoutesComponent, canActivate: [authGuard] },
-  { path: 'company/routes/add', component: CompanyAddRouteComponent, canActivate: [authGuard] },
-  { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [authGuard] },
-  { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [authGuard] },
-  { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [authGuard] },
-  { path: 'company/tickets/add', component: CompanyAddTicketComponent, canActivate: [authGuard] },
-  { path: 'company/settings', component: CompanySettingsComponent, canActivate: [authGuard] },
-  { path: 'company/support', component: CompanySupportComponent, canActivate: [authGuard] },
-  { path: 'company/payment', component: CompanyPaymentPage, canActivate: [authGuard] },
-  { path: 'company/profile', component: CompanyProfileComponent, canActivate: [authGuard] },
+  { path: 'company/dashboard', component: CompanyDashboardComponent,
+     canActivate: [companyGuard] },
+  { path: 'company/routes', component: CompanyRoutesComponent,
+    canActivate: [companyGuard] },
+  { path: 'company/routes/add', component: CompanyAddRouteComponent, canActivate: [companyGuard] },
+  { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [companyGuard] },
+  { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [companyGuard] },
+  { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [companyGuard] },
+  { path: 'company/tickets/add', component: CompanyAddTicketComponent, canActivate: [companyGuard] },
+  { path: 'company/settings', component: CompanySettingsComponent, canActivate: [companyGuard] },
+  { path: 'company/support', component: CompanySupportComponent, canActivate: [companyGuard] },
+  { path: 'company/payment', component: CompanyPaymentPage, canActivate: [companyGuard] },
+  { path: 'company/profile', component: CompanyProfileComponent, canActivate: [companyGuard] },
 
   // Admin-protected routes
   {
     path: 'admin',
     canActivate: [adminGuard],
     children: [
-      { path: 'companies/add', component: AdminAddCompanyComponent },
       { path: '', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
     ]
   },
 
   // User-protected routes
-  { path: 'dashboard', component: UserDashboardComponent, canActivate: [authGuard] },
-  { path: 'routes', component: RoutesComponent, canActivate: [authGuard] },
-  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'dashboard', component: UserDashboardComponent, canActivate: [userGuard] },
+  { path: 'routes', component: RoutesComponent, canActivate: [userGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [userGuard] },
+  { path: 'settings', component: SettingsComponent,canActivate:[userGuard] },
+  { path: 'support', component: SupportComponent,canActivate:[userGuard] },
+  { path: 'payment', component: PaymentComponent ,canActivate:[userGuard]},
+  { path: 'my-bookings', component: MyBookingsComponent,canActivate:[userGuard] },
   { path: '**', redirectTo: '' }
 ];

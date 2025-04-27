@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { BusBookingService } from '../../services/bus-booking.service';
-import { UserService } from '../../services/user.service';
+import {BookingService } from '../../services/bus-booking.service';
+import { UserService, User as ServiceUser } from '../../services/user.service';
 import { error } from 'console';
 import { FormsModule } from '@angular/forms';
 
@@ -40,69 +40,6 @@ interface Activity {
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './user-dashboard.component.html',
-  // template: `
-
-  //   <div class="dashboard-container">
-  //     <h1>My Dashboard</h1>
-
-  //     <div class="dashboard-actions">
-  //       <a routerLink="/profile" class="action-btn">Profile</a>
-  //       <a routerLink="/my-bookings" class="action-btn">My Bookings</a>
-  //       <a routerLink="/settings" class="action-btn">Settings</a>
-  //       <a routerLink="/support" class="action-btn">Support</a>
-  //       <a routerLink="/search" class="action-btn">Book a Bus</a>
-  //     </div>
-
-  //     <div class="dashboard-stats">
-  //       <div class="stat-card">
-  //         <h3>Total Bookings</h3>
-  //         <p>{{ totalBookings }}</p>
-  //       </div>
-  //       <div class="stat-card">
-  //         <h3>Upcoming Trips</h3>
-  //         <p>{{ upcomingTrips }}</p>
-  //       </div>
-  //       <div class="stat-card">
-  //         <h3>Completed Trips</h3>
-  //         <p>{{ completedTrips }}</p>
-  //       </div>
-  //     </div>
-
-  //     <div class="recent-bookings">
-  //       <h2>Recent Bookings</h2>
-  //       <div class="bookings-list" *ngIf="!loading; else loadingState">
-  //         <div *ngIf="bookings.length === 0" class="no-bookings">
-  //           <p>No bookings found</p>
-  //           <a routerLink="/search" class="search-link">Search for buses</a>
-  //         </div>
-  //         <div *ngFor="let booking of bookings" class="booking-card">
-  //           <div class="booking-info">
-  //             <h3>{{ booking.route?.source }} → {{ booking.route?.destination }}</h3>
-  //             <p>Date: {{ booking.travelDate | date:'mediumDate' }}</p>
-  //             <p>Time: {{ booking.travelTime }}</p>
-  //             <p>Seats: {{ booking.seats }}</p>
-  //             <p>Status: <span [class]="booking.status">{{ booking.status }}</span></p>
-  //           </div>
-  //           <div class="booking-actions">
-  //             <button *ngIf="booking.status === 'CONFIRMED'"
-  //                     (click)="cancelBooking(booking.id)"
-  //                     class="cancel-btn">
-  //               Cancel Booking
-  //             </button>
-  //             <button *ngIf="booking.status === 'CONFIRMED'"
-  //                     class="view-ticket-btn"
-  //                     (click)="viewTicket(booking.id)">
-  //               View Ticket
-  //             </button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <ng-template #loadingState>
-  //         <div class="loading">Loading bookings...</div>
-  //       </ng-template>
-  //     </div>
-  //   </div>
-  // `,
   styles: [`
     .dashboard-container {
       max-width: 1200px;
@@ -502,7 +439,9 @@ interface Activity {
   `]
 })
 export class UserDashboardComponent implements OnInit {
+
   user: User | null = null;
+
   stats: Stats = {
     activeBookings: 0,
     totalBookings: 0,
@@ -518,36 +457,44 @@ export class UserDashboardComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private bookingService: BusBookingService,
+    private bookingService: BookingService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    // Load user data first, which will then trigger loading stats
     this.loadUserData();
+    // Load bookings separately
     this.loadBookings();
-    this.loadActivity();
+    // Activity will be loaded after user data is available
   }
 
   private loadUserData() {
     this.userService.getCurrentUser().subscribe({
-      next: (user) => {
-        this.user = user;
-        this.loadUserStats();
+      next: (user: ServiceUser) => {
+        // Convert ServiceUser to the component's User interface
+        this.user = {
+          id: user.id,
+          name: user.username, // Use username as name
+          email: user.email,
+          lastLogin: user.lastLogin || new Date()
+        };
+        this.loadUserStats(user.id);
       },
       error: (error) => {
-        console.error('Error loading user data:', error);
-        // Handle error (e.g., redirect to login)
+        console.error(error);
       }
     });
   }
 
-  private loadUserStats() {
-    this.userService.getUserStats().subscribe({
+  private loadUserStats(userId: string) {
+    this.userService.getUserStats(userId).subscribe({
       next: (stats : any) => {
         this.stats = stats;
+        console.log('User stats loaded:', this.stats);
       },
       error: (error: any) => {
-        console.error('Error loading user stats:', error);
+        console.error(error);
       }
     });
   }
@@ -558,20 +505,25 @@ export class UserDashboardComponent implements OnInit {
         this.activeBookings = bookings;
       },
       error: (error: any) => {
-        console.error('Error loading bookings:', error);
+        console.error(error);
       }
     });
   }
 
   private loadActivity() {
-    this.userService.getRecentActivity().subscribe({
-      next: (activity: any) => {
-        this.recentActivity = activity;
-      },
-      error: (error: any) => {
-        console.error('Error loading activity:', error);
-      }
-    });
+    if (this.user && this.user.id) {
+      this.userService.getRecentActivity(this.user.id).subscribe({
+        next: (activity: any) => {
+          this.recentActivity = activity;
+        },
+        error: (error: any) => {
+          console.error(error);
+        }
+      });
+    } else {
+      // If no user is loaded yet, set up an empty activity list
+      this.recentActivity = [];
+    }
   }
 
   viewTicket(bookingId: string) {
@@ -585,10 +537,12 @@ export class UserDashboardComponent implements OnInit {
           // Refresh bookings and activity
           this.loadBookings();
           this.loadActivity();
-          this.loadUserStats();
+          if (this.user && this.user.id) {
+            this.loadUserStats(this.user.id);
+          }
         },
-        error: (error) => {
-          console.error('Error canceling booking:', error);
+        error: (error: any) => {
+          console.error(error);
           // Show error message to user
         }
       });

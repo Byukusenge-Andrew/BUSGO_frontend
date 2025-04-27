@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BusRouteService } from '../../services/bus-route.service';
+import {RouteService } from '../../services/bus-route.service';
 
 @Component({
   selector: 'app-routes',
@@ -18,7 +18,7 @@ export class RoutesComponent implements OnInit {
   searchTerm: string = '';
   filteredRoutes: any[] = [];
 
-  constructor(private routeService: BusRouteService) {}
+  constructor(private routeService: RouteService) {}
 
   ngOnInit() {
     this.loadRoutes();
@@ -26,13 +26,13 @@ export class RoutesComponent implements OnInit {
 
   loadRoutes() {
     this.loading = true;
-    this.routeService.getRoutes().subscribe({
-      next: (routes) => {
+    this.routeService.getAllRoutes().subscribe({
+      next: (routes: any[]) => {
         this.routes = routes;
         this.filteredRoutes = routes;
         this.loading = false;
       },
-      error: (error) => {
+      error: () => {
         this.error = 'Failed to load routes. Please try again later.';
         this.loading = false;
       }

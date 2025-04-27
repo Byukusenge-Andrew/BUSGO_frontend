@@ -1,0 +1,16 @@
+.ticket-container {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: var(--primary-black);
+  margin-bottom: 2rem;
+}
+
+.loading {
+  color: var(--text-dark);
+  text-align: center;
+  padding: 2rem;
+}/*# sourceMappingURL=ticket.component.css.map */

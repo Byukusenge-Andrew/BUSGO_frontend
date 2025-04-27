@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BusBookingService } from '../../services/bus-booking.service';
+import {BookingService } from '../../services/bus-booking.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -15,7 +15,7 @@ export class MyBookingsComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
 
-  constructor(private bookingService: BusBookingService) {}
+  constructor(private bookingService: BookingService) {}
 
   ngOnInit() {
     this.loadBookings();
@@ -23,7 +23,7 @@ export class MyBookingsComponent implements OnInit {
 
   loadBookings() {
     this.loading = true;
-    this.bookingService.getBookings().subscribe({
+    this.bookingService.getMyBookings().subscribe({
       next: (bookings) => {
         this.bookings = bookings;
         this.loading = false;
