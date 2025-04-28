@@ -62,7 +62,7 @@ import { AuthService } from '../../services/auth.service';
             <a mat-menu-item routerLink="/support" class="dropdown">
               <span>Support</span>
             </a>
-            <mat-divider class="dropdown"></mat-divider>
+            <mat-divider ></mat-divider>
             <button mat-menu-item (click)="logout()" class="dropdown">
               <span>Logout</span>
             </button>
@@ -92,7 +92,7 @@ import { AuthService } from '../../services/auth.service';
               <span>Support</span>
             </a>
             <mat-divider class="dropdown"></mat-divider>
-            <button mat-menu-item (click)="logout()">
+            <button mat-menu-item (click)="logout()" class="dropdown">
               <span>Logout</span>
             </button>
           </mat-menu>
@@ -114,8 +114,8 @@ import { AuthService } from '../../services/auth.service';
             <a mat-menu-item routerLink="/admin/reports" class="dropdown">
               <span>Reports</span>
             </a>
-            <mat-divider class="dropdown"></mat-divider>
-            <button mat-menu-item (click)="logout()">
+            <mat-divider ></mat-divider>
+            <button mat-menu-item (click)="logout()" class="dropdown">
               <span>Logout</span>
             </button>
           </mat-menu>
@@ -221,15 +221,16 @@ export class HeaderComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
       const  userRole = this.authService.currentUserRole;
+      console.log("the userole is "+ userRole)
 
       if (user) {
-        if ( userRole === 'ADMIN') {
-          this.userType = 'admin';
+        if ( userRole === 'USER') {
+          this.userType = 'user';
         } else if (userRole === 'COMPANY') {
           this.userType = 'company';
         } else {
           console.log("user role set to user")
-          this.userType = 'user';
+          this.userType = 'admin';
         }
       } else {
         this.userType = null;

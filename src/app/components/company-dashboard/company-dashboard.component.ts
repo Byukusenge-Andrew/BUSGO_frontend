@@ -65,7 +65,7 @@ interface RecentBooking {
           <mat-card class="stat-card">
             <mat-card-content>
               <div class="stat-icon">
-                <span>directions_bus</span>
+                <mat-icon>directions_bus</mat-icon>
               </div>
               <div class="stat-info">
                 <div class="stat-value">{{ stats.totalBuses }}</div>
@@ -77,7 +77,7 @@ interface RecentBooking {
           <mat-card class="stat-card">
             <mat-card-content>
               <div class="stat-icon">
-                <span>route</span>
+                <mat-icon>route</mat-icon>
               </div>
               <div class="stat-info">
                 <div class="stat-value">{{ stats.activeRoutes }}</div>
@@ -89,7 +89,7 @@ interface RecentBooking {
           <mat-card class="stat-card">
             <mat-card-content>
               <div class="stat-icon">
-                <span>confirmation_number</span>
+                <mat-icon>confirmation_number</mat-icon>
               </div>
               <div class="stat-info">
                 <div class="stat-value">{{ stats.totalBookings }}</div>
@@ -101,7 +101,7 @@ interface RecentBooking {
           <mat-card class="stat-card">
             <mat-card-content>
               <div class="stat-icon">
-                <span>today</span>
+                <mat-icon>today</mat-icon>
               </div>
               <div class="stat-info">
                 <div class="stat-value">{{ stats.todayBookings }}</div>
@@ -113,7 +113,7 @@ interface RecentBooking {
           <mat-card class="stat-card revenue">
             <mat-card-content>
               <div class="stat-icon">
-                <span>payments</span>
+                <mat-icon>payments</mat-icon>
               </div>
               <div class="stat-info">
                 <div class="stat-value">RWF {{ stats.revenue | number }}</div>
@@ -125,7 +125,7 @@ interface RecentBooking {
 
         <div class="dashboard-actions">
           <button mat-raised-button color="primary" routerLink="/company/routes">
-            Manage Routes
+          <mat-icon></mat-icon>  Manage Routes
           </button>
           <button mat-raised-button color="accent" routerLink="/company/schedules">
             Manage Schedules
@@ -190,6 +190,9 @@ interface RecentBooking {
                   </button>
                   <button mat-stroked-button routerLink="/company/reports">
                      Generate Report
+                  </button>
+                  <button mat-stroked-button routerLink="/company/buses/add">
+                    Add Busses
                   </button>
                 </div>
               </mat-card-content>

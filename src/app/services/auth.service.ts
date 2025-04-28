@@ -39,6 +39,7 @@ export interface AuthResponse {
   data: User | Company;
   company?: Company;
 }
+
 @Injectable({
   providedIn: 'root'
 })
@@ -57,13 +58,20 @@ export class AuthService {
       const storedUser = localStorage.getItem('currentUser');
       const storedRole = localStorage.getItem('userRole');
       if (storedUser) {
-        this.currentUserSubject.next(JSON.parse(storedUser));
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          this.currentUserSubject.next(parsedUser);
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+          this.currentUserSubject.next(null);
+        }
       }
       if (storedRole) {
         this.userRole.next(storedRole);
       }
     }
   }
+
   getCurrentUserId(): string | null {
     const currentUser = this.currentUserSubject.value;
     if (currentUser) {
@@ -74,7 +82,6 @@ export class AuthService {
     }
     return null;
   }
-
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
@@ -99,7 +106,7 @@ export class AuthService {
           // Handle the company property instead of data
           const companyData = response.company || response.data;
           if (!companyData) {
-            console.error();
+            console.error('No company data received');
             return;
           }
 
@@ -113,13 +120,14 @@ export class AuthService {
         })
       );
   }
+
   registerCompany(companyData: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/companies`, companyData)
       .pipe(
         tap(response => {
           if (response && response.token) {
             this.currentUserSubject.next(response.data);
-            this.userRole.next('COMPANY');
+            this.userRole.next(response.role);
             if (isPlatformBrowser(this.platformId)) {
               localStorage.setItem('currentUser', JSON.stringify(response.data));
               localStorage.setItem('userRole', response.role);
@@ -129,7 +137,6 @@ export class AuthService {
         })
       );
   }
-
 
   adminLogin(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/admin/login`, { email, password })
@@ -159,7 +166,6 @@ export class AuthService {
             localStorage.setItem('userRole', response.role);
             localStorage.setItem('token', response.token);
           }
-
         })
       );
   }
@@ -172,7 +178,6 @@ export class AuthService {
       localStorage.removeItem('userRole');
       localStorage.removeItem('token');
     }
-
   }
 
   get isAuthenticated(): boolean {

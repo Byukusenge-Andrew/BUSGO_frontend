@@ -3,11 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { map } from 'rxjs/operators';
+import {AuthService} from './auth.service';
+import {Router} from '@angular/router';
 
 export interface Bus {
   id: string;
   registrationNumber: string;
   model: string;
+  busType: string;
   capacity: number;
   companyId: string;
   status: 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE';
@@ -21,14 +24,20 @@ export interface Bus {
 export class BusService {
   private apiUrl = `${environment.apiUrl}/buses`; // Use environment.apiUrl for consistency
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private authservice:AuthService,
+
+  ) {
+
+  }
 
   // Helper method to convert backend bus to frontend format
   private convertBus(bus: any): Bus {
     return {
       ...bus,
       id: bus.id.toString(),
-      companyId: bus.companyId.toString(),
       createdAt: bus.createdAt ? new Date(bus.createdAt) : new Date()
     };
   }
@@ -52,7 +61,16 @@ export class BusService {
   }
 
   // Add a new bus
-  addBus(busData: Partial<Bus>): Observable<Bus> {
+  addBus(busData: {
+    registrationNumber: any;
+    model: any;
+    busType: any;
+    capacity: any;
+    features: (string | null)[];
+    notes: any;
+    companyId: string | null;
+    status: string
+  }): Observable<Bus> {
     return this.http.post<any>(this.apiUrl, busData)
       .pipe(map(bus => this.convertBus(bus)));
   }
