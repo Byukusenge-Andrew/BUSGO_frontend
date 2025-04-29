@@ -32,6 +32,8 @@ import { CompanyAddTicketComponent } from './components/company-add-ticket/compa
 import {CompanyRegisterComponent} from './components/company-register/company-register.component';
 import {ticketGuard} from './guards/ticket.guard';
 import {userGuard} from './guards/user.guard';
+import {ViewLocationsComponent} from './components/company-location/company-location';
+import {AddLocationComponent} from './components/company-location/company-add-location/company-add-location';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -52,6 +54,8 @@ export const routes: Routes = [
   { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [companyGuard] },
   { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [companyGuard] },
   { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [companyGuard] },
+  {path:'company/location',component:ViewLocationsComponent,canActivate:[companyGuard]},
+  {path:'company/location/add',component:AddLocationComponent,canActivate:[companyGuard]},
   { path: 'company/tickets/add', component: CompanyAddTicketComponent, canActivate: [companyGuard] },
   { path: 'company/settings', component: CompanySettingsComponent, canActivate: [companyGuard] },
   { path: 'company/support', component: CompanySupportComponent, canActivate: [companyGuard] },

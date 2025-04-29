@@ -1,22 +1,22 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
-import {FooterComponent} from './shared/components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent],
+  imports: [RouterOutlet, HeaderComponent],
   template: `
     <app-header></app-header>
     <main class="main-content">
       <router-outlet></router-outlet>
-      <app-footer></app-footer>
+    </main>
+
   `,
   styles: [`
     .main-content {
-      padding: 1rem;
-      max-width: 1200px;
+      padding: 0.5rem;
+      max-width: 1350px;
       margin: 0 auto;
     }
   `]

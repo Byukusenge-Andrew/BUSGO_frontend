@@ -55,5 +55,5 @@ export class HomeComponent {
       dark: false
     }
   ];
-  
+
 }

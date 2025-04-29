@@ -139,7 +139,7 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
           </tr>
         </table>
 
-        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users"></mat-paginator>
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users" class="whitener"></mat-paginator>
       </div>
     </div>
   `,
@@ -147,11 +147,15 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
     .admin-users {
       padding: 1rem;
 
+      .whitener{
+        background-color: white;
+      }
+
       .button {
         display: inline-block;
         padding: 3px 3px;
         margin-left: 1px;
-        background-color: #a5230d;
+        background-color:var(--primary-red);
         color: #ffffff;
         text-align: center;
         text-decoration: none;

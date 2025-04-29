@@ -65,4 +65,5 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class FooterComponent {}
+export class FooterComponent {
+}

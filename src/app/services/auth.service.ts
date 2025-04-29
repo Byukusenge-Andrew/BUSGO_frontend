@@ -60,14 +60,14 @@ export class AuthService {
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          this.currentUserSubject.next(parsedUser);
+          this.currentUserSubject.next();
         } catch (e) {
           console.error('Error parsing stored user:', e);
-          this.currentUserSubject.next(null);
+          this.currentUserSubject.next();
         }
       }
       if (storedRole) {
-        this.userRole.next(storedRole);
+        this.userRole.next();
       }
     }
   }
@@ -87,8 +87,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
       .pipe(
         tap(response => {
-          this.currentUserSubject.next(response.data);
-          this.userRole.next(response.role);
+          this.currentUserSubject.next();
+          this.userRole.next();
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
@@ -110,8 +110,8 @@ export class AuthService {
             return;
           }
 
-          this.currentUserSubject.next(companyData);
-          this.userRole.next(response.role);
+          this.currentUserSubject.next();
+          this.userRole.next();
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(companyData));
             localStorage.setItem('userRole', response.role);
@@ -126,8 +126,8 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response && response.token) {
-            this.currentUserSubject.next(response.data);
-            this.userRole.next(response.role);
+            this.currentUserSubject.next();
+            this.userRole.next();
             if (isPlatformBrowser(this.platformId)) {
               localStorage.setItem('currentUser', JSON.stringify(response.data));
               localStorage.setItem('userRole', response.role);
@@ -142,8 +142,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/admin/login`, { email, password })
       .pipe(
         tap(response => {
-          this.currentUserSubject.next(response.data);
-          this.userRole.next(response.role);
+          this.currentUserSubject.next();
+          this.userRole.next();
           console.log(response);
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
@@ -158,8 +158,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data)
       .pipe(
         tap(response => {
-          this.currentUserSubject.next(response.data);
-          this.userRole.next(response.role);
+          this.currentUserSubject.next();
+          this.userRole.next();
           console.log(response);
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
@@ -171,8 +171,8 @@ export class AuthService {
   }
 
   logout() {
-    this.currentUserSubject.next(null);
-    this.userRole.next(null);
+    this.currentUserSubject.next();
+    this.userRole.next();
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('userRole');

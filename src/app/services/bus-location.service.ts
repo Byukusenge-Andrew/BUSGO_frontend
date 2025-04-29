@@ -11,6 +11,15 @@ export interface BusLocation {
   state: string;
   country: string;
   locationType: string;
+  address?: LocationAddress;
+}
+
+export interface LocationAddress {
+  id?: number;
+  street?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 @Injectable({
@@ -28,7 +37,14 @@ export class BusLocationService {
       city: location.city,
       state: location.state,
       country: location.country,
-      locationType: location.locationType
+      locationType: location.locationType,
+      address: location.address ? {
+        id: location.address.id,
+        street: location.address.street,
+        postalCode: location.address.postalCode,
+        latitude: location.address.latitude,
+        longitude: location.address.longitude
+      } : undefined
     };
   }
 
@@ -40,5 +56,49 @@ export class BusLocationService {
   getLocationById(id: number): Observable<BusLocation> {
     return this.http.get<any>(`${this.apiUrl}/${id}`)
       .pipe(map(location => this.convertLocation(location)));
+  }
+
+  createLocation(location: BusLocation): Observable<BusLocation> {
+    const backendLocation = {
+      locationName: location.locationName,
+      city: location.city,
+      state: location.state,
+      country: location.country,
+      locationType: location.locationType,
+      address: location.address ? {
+        street: location.address.street,
+        postalCode: location.address.postalCode,
+        latitude: location.address.latitude,
+        longitude: location.address.longitude
+      } : null
+    };
+    return this.http.post<any>(this.apiUrl, backendLocation)
+      .pipe(map(created => this.convertLocation(created)));
+  }
+
+  updateLocation(id: number, location: BusLocation): Observable<BusLocation> {
+    const backendLocation = {
+      locationName: location.locationName,
+      city: location.city,
+      state: location.state,
+      country: location.country,
+      locationType: location.locationType,
+      address: location.address ? {
+        street: location.address.street,
+        postalCode: location.address.postalCode,
+        latitude: location.address.latitude,
+        longitude: location.address.longitude
+      } : null
+    };
+    return this.http.put<any>(`${this.apiUrl}/${id}`, backendLocation)
+      .pipe(map(updated => this.convertLocation(updated)));
+  }
+
+  deleteLocation(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  createOrUpdateLocationAddress(locationId: number, address: LocationAddress): Observable<LocationAddress> {
+    return this.http.post<LocationAddress>(`${this.apiUrl}/${locationId}/address`, address);
   }
 }

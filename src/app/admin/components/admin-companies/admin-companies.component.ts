@@ -40,7 +40,6 @@ import {AddCompanyDialogComponent} from '../admin-add-company/admin-add-company.
   template: `
     <div class="admin-companies">
       <div class="header">
-        <h2>Manage Bus Companies</h2>
         <button class="button" mat-raised-button color="primary" (click)="openAddCompanyDialog()">
          Add Company
         </button>
@@ -158,7 +157,7 @@ import {AddCompanyDialogComponent} from '../admin-add-company/admin-add-company.
         display: inline-block;
         padding: 3px 3px;
         margin-left: 1px;
-        background-color: #a5230d;
+        background-color: var(--primary-red);
         color: #ffffff;
         text-align: center;
         text-decoration: none;

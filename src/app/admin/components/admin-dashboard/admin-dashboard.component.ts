@@ -8,7 +8,6 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="admin-dashboard">
-      <h1>Admin Dashboard</h1>
       <nav>
         <ul>
           <li><a routerLink="users">Manage Users</a></li>

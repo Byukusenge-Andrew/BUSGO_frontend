@@ -73,6 +73,7 @@ import { AuthService } from '../../services/auth.service';
         <div class="nav-links" *ngIf="isLoggedIn && userType === 'company'">
           <a mat-button routerLink="/company/dashboard">Dashboard</a>
           <a mat-button routerLink="/company/routes">Routes</a>
+          <a mat-button routerLink="/company/location">Locations</a>
           <a mat-button routerLink="/company/schedules">Schedules</a>
           <a mat-button routerLink="/company/bookings">Bookings</a>
           <button mat-icon-button [matMenuTriggerFor]="companyMenu">

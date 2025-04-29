@@ -55,7 +55,6 @@ interface Route {
   template: `
     <div class="admin-routes">
       <div class="header">
-        <h2>Manage Bus Routes</h2>
         <button mat-raised-button color="primary" (click)="openAddRouteDialog()">
           <mat-icon>add</mat-icon> Add Route
         </button>
