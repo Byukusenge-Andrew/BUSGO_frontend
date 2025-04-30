@@ -3,6 +3,9 @@ import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { SignupComponent } from './components/auth/signup/signup.component';
 import { BusSearchComponent } from './components/bus-search/bus-search.component';
+import { ScheduleSearchComponent } from './components/schedule-search/schedule-search.component';
+import { ScheduleBookingComponent } from './components/schedule-booking/schedule-booking.component';
+import { BookingConfirmationComponent } from './components/booking-confirmation/booking-confirmation.component';
 import { CompanyLoginComponent } from './components/company-login/company-login.component';
 import { authGuard } from './guards/auth.guard';
 import { RoutesComponent } from './components/routes/routes.component';
@@ -34,6 +37,7 @@ import {ticketGuard} from './guards/ticket.guard';
 import {userGuard} from './guards/user.guard';
 import {ViewLocationsComponent} from './components/company-location/company-location';
 import {AddLocationComponent} from './components/company-location/company-add-location/company-add-location';
+import {CompanyBusesComponent} from './components/company-busses/company-busses.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -42,6 +46,9 @@ export const routes: Routes = [
   { path: 'company/login', component: CompanyLoginComponent },
   {path: 'company/register', component: CompanyRegisterComponent },
   { path: 'search', component: BusSearchComponent },
+  { path: 'schedule-search', component: ScheduleSearchComponent },
+  { path: 'schedule-booking/:id', component: ScheduleBookingComponent,canActivate:[authGuard] },
+  { path: 'booking-confirmation/:id', component: BookingConfirmationComponent },
   { path: 'ticket/:id', component: TicketComponent,canActivate:[ticketGuard] },
   { path: 'admin/login', component: AdminLoginComponent },
 
@@ -51,6 +58,7 @@ export const routes: Routes = [
   { path: 'company/routes', component: CompanyRoutesComponent,
     canActivate: [companyGuard] },
   { path: 'company/routes/add', component: CompanyAddRouteComponent, canActivate: [companyGuard] },
+  {path:'company/buses',component:CompanyBusesComponent,canActivate:[companyGuard] },
   { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [companyGuard] },
   { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [companyGuard] },
   { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [companyGuard] },

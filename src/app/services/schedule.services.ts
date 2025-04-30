@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { BusLocation } from './bus-location.service';
+import {Bus} from './bus.service';
 
 export interface Schedule {
   id: number;
@@ -102,6 +103,12 @@ export class ScheduleService {
     return this.http.put<any>(`${this.apiUrl}/${id}`, backendSchedule)
       .pipe(map(schedule => this.convertSchedule(schedule)));
   }
+
+  getCompanySchedule(companyId: string): Observable<Schedule[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`)
+      .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
+  }
+
 
   deleteSchedule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

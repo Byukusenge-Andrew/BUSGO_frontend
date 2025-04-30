@@ -44,7 +44,6 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-
   private currentUserSubject = new BehaviorSubject<User | Company | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
   private userRole = new BehaviorSubject<string | null>(null);
@@ -60,14 +59,18 @@ export class AuthService {
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          this.currentUserSubject.next();
+          this.currentUserSubject.next(parsedUser); // Fixed: Pass parsed user
         } catch (e) {
           console.error('Error parsing stored user:', e);
-          this.currentUserSubject.next();
+          this.currentUserSubject.next(null); // Fixed: Pass null on error
         }
+      } else {
+        this.currentUserSubject.next(null); // Fixed: Initialize with null
       }
       if (storedRole) {
-        this.userRole.next();
+        this.userRole.next(storedRole); // Fixed: Pass stored role
+      } else {
+        this.userRole.next(null); // Fixed: Initialize with null
       }
     }
   }
@@ -83,12 +86,16 @@ export class AuthService {
     return null;
   }
 
+  getCurrentUser(): User | Company | null {
+    return this.currentUserSubject.value;
+  }
+
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
       .pipe(
         tap(response => {
-          this.currentUserSubject.next();
-          this.userRole.next();
+          this.currentUserSubject.next(response.data); // Fixed: Pass response.data
+          this.userRole.next(response.role); // Fixed: Pass response.role
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
@@ -102,16 +109,14 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/company/login`, { email, password })
       .pipe(
         tap(response => {
-          console.log(response);
-          // Handle the company property instead of data
+          console.log('Company login response:', response);
           const companyData = response.company || response.data;
           if (!companyData) {
             console.error('No company data received');
-            return;
+            throw new Error('No company data received');
           }
-
-          this.currentUserSubject.next();
-          this.userRole.next();
+          this.currentUserSubject.next(companyData); // Fixed: Pass companyData
+          this.userRole.next(response.role); // Fixed: Pass response.role
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(companyData));
             localStorage.setItem('userRole', response.role);
@@ -126,10 +131,11 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response && response.token) {
-            this.currentUserSubject.next();
-            this.userRole.next();
+            const companyData = response.data || response.company;
+            this.currentUserSubject.next(companyData); // Fixed: Pass response.data or company
+            this.userRole.next(response.role); // Fixed: Pass response.role
             if (isPlatformBrowser(this.platformId)) {
-              localStorage.setItem('currentUser', JSON.stringify(response.data));
+              localStorage.setItem('currentUser', JSON.stringify(companyData));
               localStorage.setItem('userRole', response.role);
               localStorage.setItem('token', response.token);
             }
@@ -142,9 +148,9 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/admin/login`, { email, password })
       .pipe(
         tap(response => {
-          this.currentUserSubject.next();
-          this.userRole.next();
-          console.log(response);
+          console.log('Admin login response:', response);
+          this.currentUserSubject.next(response.data); // Fixed: Pass response.data
+          this.userRole.next(response.role); // Fixed: Pass response.role
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
@@ -158,9 +164,9 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data)
       .pipe(
         tap(response => {
-          this.currentUserSubject.next();
-          this.userRole.next();
-          console.log(response);
+          console.log('Signup response:', response);
+          this.currentUserSubject.next(response.data); // Fixed: Pass response.data
+          this.userRole.next(response.role); // Fixed: Pass response.role
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('currentUser', JSON.stringify(response.data));
             localStorage.setItem('userRole', response.role);
@@ -171,8 +177,8 @@ export class AuthService {
   }
 
   logout() {
-    this.currentUserSubject.next();
-    this.userRole.next();
+    this.currentUserSubject.next(null);
+    this.userRole.next(null);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('userRole');

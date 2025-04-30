@@ -13,13 +13,16 @@ import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/bus-booking.service';
 import { BusService } from '../../services/bus.service';
 import { RouteService } from '../../services/bus-route.service';
-import { Subscription } from 'rxjs';
+import {scheduled, Subscription} from 'rxjs';
+import {ScheduleService} from '../../services/schedule.services';
+import {Schedule} from '../../models/schedule.model';
 
 interface CompanyStats {
   totalBuses: number;
   activeRoutes: number;
   totalBookings: number;
   todayBookings: number;
+  totalSchedules:number;
   revenue: number;
 }
 
@@ -97,6 +100,17 @@ interface RecentBooking {
               </div>
             </mat-card-content>
           </mat-card>
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">{{ stats.totalSchedules }}</div>
+                <div class="stat-label">Total Schedule</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
 
           <mat-card class="stat-card">
             <mat-card-content>
@@ -105,7 +119,7 @@ interface RecentBooking {
               </div>
               <div class="stat-info">
                 <div class="stat-value">{{ stats.todayBookings }}</div>
-                <div class="stat-label">Today's Bookings</div>
+                <div class="stat-label">Total Busses</div>
               </div>
             </mat-card-content>
           </mat-card>
@@ -379,17 +393,20 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
     activeRoutes: 0,
     totalBookings: 0,
     todayBookings: 0,
+    totalSchedules:0,
     revenue: 0
   };
 
   recentBookings: RecentBooking[] = [];
   private subscriptions: Subscription[] = [];
+  private schedule: any;
 
   constructor(
     private authService: AuthService,
     private bookingService: BookingService,
     private busService: BusService,
-    private routeService: RouteService
+    private routeService: RouteService,
+    private scheduleService: ScheduleService
   ) {}
 
   ngOnInit(): void {
@@ -425,6 +442,18 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
         console.error(error);
       }
     });
+    const ScheduleBus = this.scheduleService.getCompanySchedule(this.companyId).subscribe(
+      {
+        next:(schedules) => {
+          console.log("this is the shedule "+schedules)
+          this.stats.totalSchedules = schedules.length;
+
+        },
+        error: (error) => {
+          console.error(error);
+        }
+      }
+    )
 
     // Load routes count
     const routeSub = this.routeService.getCompanyRoutes(this.companyId).subscribe({
@@ -479,7 +508,7 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.subscriptions.push(busSub, routeSub, bookingSub);
+    this.subscriptions.push(busSub, routeSub, bookingSub,ScheduleBus);
   }
 
   getStatusColor(status: string): string {

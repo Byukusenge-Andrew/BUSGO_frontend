@@ -11,6 +11,8 @@ export interface Booking {
   scheduleId: string;
   userId: string;
   customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   routeName: string;
   date: Date;
   departureTime: string;
@@ -33,7 +35,7 @@ export class BookingService {
   private convertBooking(booking: any): Booking {
     return {
       ...booking,
-      id: booking.id.toString(),
+      id: booking.id?.toString(),
       busId: booking.busId?.toString(),
       routeId: booking.routeId?.toString(),
       scheduleId: booking.scheduleId?.toString(),
@@ -78,14 +80,30 @@ export class BookingService {
     return this.http.get<any[]>(`${this.apiUrl}/search`, { params });
   }
 
+  // Search for available schedules
+  searchSchedules(params: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/search-schedules`, { params });
+  }
+
   // Get bus details
   getBusDetails(busId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/bus/${busId}`);
   }
 
+  // Get schedule details
+  getScheduleDetails(scheduleId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/schedule/${scheduleId}`);
+  }
+
   // Book a ticket
   bookTicket(bookingData: any): Observable<Booking> {
     return this.http.post<any>(`${this.apiUrl}/book`, bookingData)
+      .pipe(map(booking => this.convertBooking(booking)));
+  }
+
+  // Book a ticket for a schedule
+  bookSchedule(bookingData: any): Observable<Booking> {
+    return this.http.post<any>(`${this.apiUrl}/book-schedule`, bookingData)
       .pipe(map(booking => this.convertBooking(booking)));
   }
 
