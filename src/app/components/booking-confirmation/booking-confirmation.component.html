@@ -1,0 +1,90 @@
+
+<div class="confirmation-container">
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading booking details...</p>
+  </div>
+
+  <div *ngIf="!loading && !booking" class="error-message">
+    <h3>Booking Not Found</h3>
+    <p>The booking you're looking for could not be found.</p>
+    <button mat-raised-button color="primary" routerLink="/schedule-search">
+      <mat-icon>search</mat-icon> Search Schedules
+    </button>
+  </div>
+
+  <div *ngIf="!loading && booking">
+    <mat-card class="confirmation-card">
+      <mat-card-content>
+        <div class="confirmation-header">
+          <div class="confirmation-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <h2>Booking Confirmed!</h2>
+          <p>Your booking has been successfully confirmed.</p>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="booking-details">
+          <div class="detail-item">
+            <span class="label">Booking ID:</span>
+            <span class="value">{{ booking.id }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Route:</span>
+            <span class="value">{{ booking.routeName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date:</span>
+            <span class="value">{{ booking.date }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Departure:</span>
+            <span class="value">{{ booking.departureTime }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Arrival:</span>
+            <span class="value">{{ booking.arrivalTime }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Passenger:</span>
+            <span class="value">{{ booking.customerName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Seats:</span>
+            <span class="value">{{ booking.seats }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Total Amount:</span>
+            <span class="value highlight">{{ booking.amount | currency:'RWF':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Status:</span>
+            <span class="value status">{{ booking.status }}</span>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="confirmation-message">
+          <p>A confirmation email has been sent to <strong>{{ booking.customerEmail }}</strong>.</p>
+          <p>Please arrive at least 30 minutes before departure time.</p>
+          <p>Thank you for choosing our service!</p>
+        </div>
+
+        <div class="confirmation-actions">
+          <button mat-raised-button color="primary" (click)="printTicket()">
+            <mat-icon>print</mat-icon> Print Ticket
+          </button>
+          <button mat-stroked-button routerLink="/my-bookings">
+            <mat-icon>list</mat-icon> My Bookings
+          </button>
+          <button mat-stroked-button routerLink="/schedule-search">
+            <mat-icon>search</mat-icon> Book Another Trip
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

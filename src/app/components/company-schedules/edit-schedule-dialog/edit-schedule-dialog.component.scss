@@ -1,0 +1,16 @@
+
+.edit-schedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Spacing between fields/rows */
+}
+.form-row {
+  display: flex;
+  gap: 15px; /* Spacing between fields in a row */
+}
+.form-field-half {
+  flex: 1; /* Make fields in a row share space */
+}
+mat-form-field {
+  width: 100%;
+}

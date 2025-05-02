@@ -38,6 +38,7 @@ import {userGuard} from './guards/user.guard';
 import {ViewLocationsComponent} from './components/company-location/company-location';
 import {AddLocationComponent} from './components/company-location/company-add-location/company-add-location';
 import {CompanyBusesComponent} from './components/company-busses/company-busses.component';
+import {CompanyBusBookingsComponent} from './components/company-booking/company-bus-bookings.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -62,6 +63,7 @@ export const routes: Routes = [
   { path: 'company/buses/add', component: CompanyAddBusComponent, canActivate: [companyGuard] },
   { path: 'company/schedules', component: CompanySchedulesComponent, canActivate: [companyGuard] },
   { path: 'company/tickets', component: CompanyTicketsComponent, canActivate: [companyGuard] },
+  {path:'company/booking',component: CompanyBusBookingsComponent,canActivate:[companyGuard]},
   {path:'company/location',component:ViewLocationsComponent,canActivate:[companyGuard]},
   {path:'company/location/add',component:AddLocationComponent,canActivate:[companyGuard]},
   { path: 'company/tickets/add', component: CompanyAddTicketComponent, canActivate: [companyGuard] },

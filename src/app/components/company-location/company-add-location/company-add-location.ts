@@ -37,7 +37,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
           <form [formGroup]="locationForm" (ngSubmit)="submit()">
             <mat-form-field appearance="outline">
               <mat-label>Location Name</mat-label>
-              <input matInput formControlName="locationName" required>
+              <input matInput formControlName="locationName" required >
               <mat-error *ngIf="locationForm.get('locationName')?.hasError('required')">
                 Location name is required
               </mat-error>
@@ -81,7 +81,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 
             <mat-form-field appearance="outline">
               <mat-label>Location Type</mat-label>
-              <mat-select formControlName="locationType" required>
+              <mat-select formControlName="locationType" required class="topunit">
                 <mat-option value="Bus Terminal">Bus Terminal</mat-option>
                 <mat-option value="Bus Station">Bus Station</mat-option>
                 <mat-option value="Stop">Stop</mat-option>
@@ -136,6 +136,9 @@ import {MatCard, MatCardContent} from '@angular/material/card';
       max-width: 600px;
       margin: 0 auto;
     }
+    input{
+      padding-left: 5px;
+    }
 
     .header {
       display: flex;
@@ -157,7 +160,12 @@ import {MatCard, MatCardContent} from '@angular/material/card';
     mat-card {
       padding: 1.5rem;
     }
-
+  mat-select{
+   background-color: white;
+  }
+  mat-option{
+    background-color: white;
+  }
     mat-form-field {
       width: 100%;
       margin-bottom: 1rem;

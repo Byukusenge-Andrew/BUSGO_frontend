@@ -1,90 +1,77 @@
 <div class="company-add-bus-container">
-  <h2>Add New Bus</h2>
-  <form [formGroup]="busForm" (ngSubmit)="onSubmit()" *ngIf="busForm">
-    <div class="form-group">
-      <label for="registrationNumber">Registration Number</label>
-      <input id="registrationNumber" formControlName="registrationNumber" type="text" />
-      <div *ngIf="busForm.get('registrationNumber')?.invalid && busForm.get('registrationNumber')?.touched" class="error">
-        Registration Number is required.
-      </div>
-    </div>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Add New Bus</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="busForm" (ngSubmit)="onSubmit()" *ngIf="busForm">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Registration Number</mat-label>
+            <input matInput formControlName="registrationNumber">
+            <mat-error *ngIf="busForm.get('registrationNumber')?.hasError('required')">
+              Registration Number is required
+            </mat-error>
+          </mat-form-field>
 
-    <div class="form-group">
-      <label for="model">Bus Model</label>
-      <input id="model" formControlName="model" type="text" />
-      <div *ngIf="busForm.get('model')?.invalid && busForm.get('model')?.touched" class="error">
-        Model is required.
-      </div>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Bus Model</mat-label>
+            <input matInput formControlName="model">
+            <mat-error *ngIf="busForm.get('model')?.hasError('required')">
+              Model is required
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-    <div class="form-group">
-      <label for="busType">Bus Type</label>
-      <select id="busType" formControlName="busType">
-        <option *ngFor="let type of busTypes" [value]="type.value">{{ type.viewValue }}</option>
-      </select>
-      <div *ngIf="busForm.get('busType')?.invalid && busForm.get('busType')?.touched" class="error">
-        Bus Type is required.
-      </div>
-    </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Bus Type</mat-label>
+            <mat-select formControlName="busType">
+              <mat-option *ngFor="let type of busTypes" [value]="type.value">{{ type.viewValue }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="busForm.get('busType')?.hasError('required')">
+              Bus Type is required
+            </mat-error>
+          </mat-form-field>
 
-    <div class="form-group">
-      <label for="capacity">Capacity</label>
-      <input id="capacity" formControlName="capacity" type="number" min="1" />
-      <div *ngIf="busForm.get('capacity')?.invalid && busForm.get('capacity')?.touched" class="error">
-        Capacity is required and must be at least 1.
-      </div>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Capacity</mat-label>
+            <input matInput type="number" min="1" formControlName="capacity">
+            <mat-error *ngIf="busForm.get('capacity')?.hasError('required') || busForm.get('capacity')?.hasError('min')">
+              Capacity is required and must be at least 1
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-    <div class="form-section">
-      <h3>Amenities</h3>
-      <div class="amenities-grid">
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasAC" formControlName="hasAC">
-          <label for="hasAC">Air Conditioning</label>
+        <div class="form-section">
+          <h3>Amenities</h3>
+          <div class="amenities-grid">
+            <mat-checkbox id="hasAC" formControlName="hasAC">Air Conditioning</mat-checkbox>
+            <mat-checkbox id="hasWifi" formControlName="hasWifi">WiFi</mat-checkbox>
+            <mat-checkbox id="hasUSB" formControlName="hasUSB">USB Charging</mat-checkbox>
+            <mat-checkbox id="hasTV" formControlName="hasTV">TV/Entertainment</mat-checkbox>
+            <mat-checkbox id="hasWater" formControlName="hasWater">Drinking Water</mat-checkbox>
+            <mat-checkbox id="hasBathroom" formControlName="hasBathroom">Bathroom</mat-checkbox>
+            <mat-checkbox id="hasRecliningSeats" formControlName="hasRecliningSeats">Reclining Seats</mat-checkbox>
+            <mat-checkbox id="hasLegroom" formControlName="hasLegroom">Extra Legroom</mat-checkbox>
+          </div>
         </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasWifi" formControlName="hasWifi">
-          <label for="hasWifi">WiFi</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasUSB" formControlName="hasUSB">
-          <label for="hasUSB">USB Charging</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasTV" formControlName="hasTV">
-          <label for="hasTV">TV/Entertainment</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasWater" formControlName="hasWater">
-          <label for="hasWater">Drinking Water</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasBathroom" formControlName="hasBathroom">
-          <label for="hasBathroom">Bathroom</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasRecliningSeats" formControlName="hasRecliningSeats">
-          <label for="hasRecliningSeats">Reclining Seats</label>
-        </div>
-        <div class="amenity-checkbox">
-          <input type="checkbox" id="hasLegroom" formControlName="hasLegroom">
-          <label for="hasLegroom">Extra Legroom</label>
-        </div>
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label for="notes">Additional Notes</label>
-      <textarea id="notes" formControlName="notes" rows="3"></textarea>
-    </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Additional Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="3"></textarea>
+          </mat-form-field>
+        </div>
 
-    <div class="form-actions">
-      <button type="button" routerLink="/company/buses">Cancel</button>
-      <button type="submit" [disabled]="busForm.invalid || submitting">
-        <span *ngIf="!submitting">Add Bus</span>
-        <span *ngIf="submitting">Adding...</span>
-      </button>
-    </div>
-  </form>
+        <div class="actions">
+          <button mat-button type="button" routerLink="/company/buses">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="busForm.invalid || submitting">
+            <span *ngIf="!submitting">Add Bus</span>
+            <span *ngIf="submitting">Adding...</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>
-

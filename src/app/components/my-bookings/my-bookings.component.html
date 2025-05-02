@@ -1,65 +1,94 @@
-<div class="bookings-container">
+<div class="bookings-container mat-typography"> <!-- Added mat-typography for Material styles -->
   <h1>My Bookings</h1>
 
-  <div *ngIf="loading" class="loading">
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
     <p>Loading your bookings...</p>
   </div>
 
-  <div *ngIf="error" class="error">
-    <p>{{ error }}</p>
+  <div *ngIf="error" class="error-container">
+    <mat-card appearance="outlined" color="warn">
+      <mat-card-content>
+        <mat-icon color="warn">error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <div *ngIf="!loading && !error">
-    <div *ngIf="bookings.length === 0" class="no-bookings">
-      <p>You don't have any bookings yet.</p>
-      <a routerLink="/search" class="cta-button">Book a Bus</a>
+    <div *ngIf="bookings.length === 0" class="no-bookings-container">
+      <mat-card appearance="outlined">
+        <mat-card-content class="no-bookings-content">
+          <mat-icon>info_outline</mat-icon>
+          <p>You don't have any bookings yet.</p>
+          <button mat-raised-button color="primary" routerLink="/schedule-search">Book a Bus</button> <!-- Updated routerLink -->
+        </mat-card-content>
+      </mat-card>
     </div>
 
     <div *ngIf="bookings.length > 0" class="bookings-list">
-      <div class="booking-card" *ngFor="let booking of bookings">
-        <div class="booking-header">
-          <h3>{{ booking.busName }}</h3>
-          <span class="booking-status" [ngClass]="{
-            'status-confirmed': booking.status === 'CONFIRMED',
-            'status-cancelled': booking.status === 'CANCELLED'
-          }">
-            {{ booking.status }}
-          </span>
-        </div>
+      <mat-card *ngFor="let booking of bookings" class="booking-card" appearance="outlined">
+        <mat-card-header>
+          <!-- Use mat-card-title-group for better alignment if needed -->
+          <mat-card-title>{{ booking.routeName }}</mat-card-title> <!-- Assuming routeName is more relevant than busName -->
+          <mat-card-subtitle>Booking ID: {{ booking.id }}</mat-card-subtitle>
+          <span class="spacer"></span> <!-- Pushes chip to the right -->
+          <mat-chip-listbox aria-label="Booking Status">
+            <mat-chip [color]="booking.status === 'CONFIRMED' ? 'primary' : (booking.status === 'CANCELLED' ? 'warn' : 'accent')"
+                      selected
+                      disabled> <!-- Use disabled instead of selectable=false -->
+              {{ booking.status }}
+            </mat-chip>
+          </mat-chip-listbox>
+        </mat-card-header>
 
-        <div class="booking-details">
-          <div class="detail">
-            <span class="label">From:</span>
-            <span class="value">{{ booking.from }}</span>
-          </div>
-          <div class="detail">
-            <span class="label">To:</span>
-            <span class="value">{{ booking.to }}</span>
-          </div>
-          <div class="detail">
-            <span class="label">Date:</span>
-            <span class="value">{{ booking.date | date:'mediumDate' }}</span>
-          </div>
-          <div class="detail">
-            <span class="label">Time:</span>
-            <span class="value">{{ booking.time }}</span>
-          </div>
-          <div class="detail">
-            <span class="label">Seats:</span>
-            <span class="value">{{ booking.seats }}</span>
-          </div>
-          <div class="detail">
-            <span class="label">Total Amount:</span>
-            <span class="value">₹{{ booking.totalAmount }}</span>
-          </div>
-        </div>
+        <mat-divider></mat-divider>
 
-        <div class="booking-actions" *ngIf="booking.status === 'CONFIRMED'">
-          <button (click)="cancelBooking(booking.id)" class="cancel-button">
-            Cancel Booking
+        <mat-card-content class="booking-details">
+          <!-- Using mat-list for details -->
+          <mat-list dense>
+            <mat-list-item>
+              <span matListItemTitle>{{ booking.customerName }}</span>
+              <span matListItemLine>Passenger</span>
+              <mat-icon matListItemIcon>person</mat-icon>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ booking.date | date:'fullDate' }}</span> <!-- Changed date format -->
+              <span matListItemLine>Date</span>
+              <mat-icon matListItemIcon>calendar_today</mat-icon>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ booking.departureTime }} - {{ booking.arrivalTime }}</span>
+              <span matListItemLine>Departure - Arrival</span>
+              <mat-icon matListItemIcon>schedule</mat-icon>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ booking.seats }} ({{ booking.seatNumbers }})</span>
+              <span matListItemLine>Seats</span>
+              <mat-icon matListItemIcon>event_seat</mat-icon>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle class="amount">{{ booking.amount | currency:'RWF':'symbol':'1.0-0' }}</span> <!-- Updated Currency -->
+              <span matListItemLine>Total Amount</span>
+              <mat-icon matListItemIcon>payments</mat-icon>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+
+        <mat-divider *ngIf="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"></mat-divider> <!-- Show divider if actions are possible -->
+
+        <mat-card-actions *ngIf="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"> <!-- Allow cancel for PENDING too? Adjust if needed -->
+          <button mat-stroked-button color="warn" (click)="cancelBooking(booking.id)" [disabled]="cancellingId === booking.id">
+            <mat-icon>cancel</mat-icon>
+            {{ cancellingId === booking.id ? 'Cancelling...' : 'Cancel Booking' }}
           </button>
-        </div>
-      </div>
+          <!-- Add other actions like 'View Ticket' if needed -->
+          <button mat-button color="primary" [routerLink]="['/booking-confirmation', booking.id]">
+            <mat-icon>receipt_long</mat-icon>
+            View Details
+          </button>
+        </mat-card-actions>
+      </mat-card>
     </div>
   </div>
 </div>

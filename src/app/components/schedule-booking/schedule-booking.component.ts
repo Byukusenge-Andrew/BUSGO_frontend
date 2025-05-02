@@ -316,14 +316,14 @@ export class ScheduleBookingComponent implements OnInit {
     // Get schedule ID from route params
     this.route.paramMap.subscribe(params => {
       const scheduleId = Number(params.get('id'));
-      
+
       // Get passengers from query params
       this.route.queryParamMap.subscribe(queryParams => {
         const passengersParam = queryParams.get('passengers');
         if (passengersParam) {
           this.passengers = Number(passengersParam);
         }
-        
+
         // Load schedule details
         this.loadSchedule(scheduleId);
       });
@@ -379,21 +379,22 @@ export class ScheduleBookingComponent implements OnInit {
 
   calculateDuration(departureTime: Date, arrivalTime: Date): string {
     if (!departureTime || !arrivalTime) return '';
-    
+
     const depTime = new Date(departureTime).getTime();
     const arrTime = new Date(arrivalTime).getTime();
     const diffMs = arrTime - depTime;
-    
+
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${hours}h ${minutes}m`;
   }
+
 
   onSubmit(): void {
     if (this.bookingForm.valid && this.schedule) {
       this.isSubmitting = true;
-      
+
       const bookingData = {
         scheduleId: this.schedule.id,
         routeId: this.schedule.routeId,
@@ -418,5 +419,6 @@ export class ScheduleBookingComponent implements OnInit {
         }
       });
     }
+
   }
 }

@@ -1,6 +1,6 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { tap } from 'rxjs/operators'; // Import RxJS tap
+import { tap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
@@ -14,14 +14,24 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const corsToken = localStorage.getItem('corsToken') || '';
-  let headers = req.headers.set('X-CORS-TOKEN', corsToken);
+  // Initialize headers
+  let headers = req.headers;
 
+  // Only access localStorage in the browser
   if (isPlatformBrowser(platformId)) {
+    const corsToken = localStorage.getItem('corsToken') || '';
     const token = localStorage.getItem('token') || '';
+
+    // Set CORS token header
+    headers = headers.set('X-CORS-TOKEN', corsToken);
+
+    // Set Authorization header if token exists
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
+  } else {
+    // Optionally set a default or empty X-CORS-TOKEN for SSR if required
+    headers = headers.set('X-CORS-TOKEN', '');
   }
 
   const authReq = req.clone({
@@ -39,7 +49,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }
       },
       error: (error) => {
-        console.error(error);
+        console.error('Interceptor Error:', error);
       }
     })
   );

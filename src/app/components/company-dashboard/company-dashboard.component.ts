@@ -112,17 +112,6 @@ interface RecentBooking {
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="stat-card">
-            <mat-card-content>
-              <div class="stat-icon">
-                <mat-icon>today</mat-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ stats.todayBookings }}</div>
-                <div class="stat-label">Total Busses</div>
-              </div>
-            </mat-card-content>
-          </mat-card>
 
           <mat-card class="stat-card revenue">
             <mat-card-content>

@@ -24,6 +24,7 @@ import { RouteService } from '../../services/bus-route.service';
 import { AuthService } from '../../services/auth.service';
 import {AddScheduleDialogComponent} from './AddScheduleDialogComponent/AddScheduleDialogComponent';
 import {Schedule} from '../../models/schedule.model';
+import {EditScheduleDialogComponent} from './edit-schedule-dialog/edit-schedule-dialog.component';
 
 @Component({
   selector: 'app-company-schedules',
@@ -268,6 +269,8 @@ export class CompanySchedulesComponent implements OnInit {
     'arrivalTime', 'busNumber', 'availableSeats', 'price', 'status', 'actions'
   ];
   filteredSchedules: Schedule[] = [];
+  private isLoading: boolean | undefined;
+  private dataSource: any;
 
   constructor(
     private dialog: MatDialog,
@@ -396,8 +399,48 @@ export class CompanySchedulesComponent implements OnInit {
   }
 
   editSchedule(schedule: Schedule): void {
-    this.snackBar.open(`Edit schedule ${schedule.id} functionality will be implemented`, 'Close', { duration: 3000 });
+    // Open dialog and pass a copy of the schedule
+    this.snackBar.open(`Schedule ${schedule.id} opened for editing`, 'Close', { duration: 3000 })
+    const ref = this.dialog.open(EditScheduleDialogComponent, {
+      width: '600px',
+      disableClose: true,
+      data: { schedule: { ...schedule } }
+    });
+
+    ref.afterClosed().subscribe((result: Schedule|undefined) => {
+      if (!result) {
+        // dialog was cancelled
+        this.snackBar.open(`Schedule editing canceled`, 'Close', { duration: 3000 })
+        return;
+      }
+
+      // show loading spinner
+      this.isLoading = true;
+
+      // call update on backend
+      this.scheduleService.updateSchedule(result.id, result).subscribe({
+        next: (updated) => {
+          // find index in current dataSource
+          const idx = this.dataSource.data.findIndex((s: { id: number; }) => s.id === updated.id);
+          if (idx > -1) {
+            const arr = [...this.dataSource.data];
+            arr[idx] = updated;
+            this.dataSource.data = arr;  // reassign to trigger table update
+          }
+          this.snackBar.open(`Schedule ${updated.id} updated successfully.`, 'Close', { duration: 3000 });
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error updating schedule:', err);
+          this.snackBar.open(`Failed to update: ${err.error?.message|| err.message|| err}`, 'Close', { duration: 5000 });
+          this.isLoading = false;
+        }
+      });
+    });
+
+
   }
+
 
   deleteSchedule(schedule: Schedule): void {
     if (confirm(`Are you sure you want to delete schedule ${schedule.id}?`)) {

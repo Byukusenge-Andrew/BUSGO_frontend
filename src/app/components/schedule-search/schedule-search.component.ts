@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,8 +17,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Import MatSnackBar
 import { ScheduleService, Schedule } from '../../services/schedule.services';
 import { BusService } from '../../services/bus.service';
+import { BusLocation, BusLocationService } from '../../services/bus-location.service';
+import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-schedule-search',
@@ -36,153 +40,199 @@ import { BusService } from '../../services/bus.service';
     MatCardModule,
     MatIconModule,
     MatChipsModule,
-    MatDividerModule
+    MatDividerModule,
+    MatSnackBarModule // Add MatSnackBarModule here
   ],
   template: `
     <div class="search-container">
-      <div class="search-form-card">
-        <h2>Find Your Bus</h2>
-        <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>From</mat-label>
-              <input type="text" matInput formControlName="from" [matAutocomplete]="fromAuto" (blur)="onFromInput($event)">
-              <mat-autocomplete #fromAuto="matAutocomplete" [displayWith]="displayFn">
-                <mat-option *ngFor="let city of filteredFromCities | async" [value]="city">
-                  {{city}}
-                </mat-option>
-              </mat-autocomplete>
-              <mat-error *ngIf="searchForm.get('from')?.hasError('required')">
-                Origin city is required
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>To</mat-label>
-              <input type="text" matInput formControlName="to" [matAutocomplete]="toAuto" (blur)="onToInput($event)">
-              <mat-autocomplete #toAuto="matAutocomplete" [displayWith]="displayFn">
-                <mat-option *ngFor="let city of filteredToCities | async" [value]="city">
-                  {{city}}
-                </mat-option>
-              </mat-autocomplete>
-              <mat-error *ngIf="searchForm.get('to')?.hasError('required')">
-                Destination city is required
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Date</mat-label>
-              <input matInput [min]="minDate" [matDatepicker]="picker" formControlName="date">
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-              <mat-error *ngIf="searchForm.get('date')?.hasError('required')">
-                Date is required
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Passengers</mat-label>
-              <input type="number" matInput formControlName="passengers" min="1" max="10">
-              <mat-error *ngIf="searchForm.get('passengers')?.hasError('required')">
-                Number of passengers is required
-              </mat-error>
-              <mat-error *ngIf="searchForm.get('passengers')?.hasError('min')">
-                At least 1 passenger is required
-              </mat-error>
-              <mat-error *ngIf="searchForm.get('passengers')?.hasError('max')">
-                Maximum 10 passengers allowed
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Sort By</mat-label>
-              <mat-select formControlName="sortBy">
-                <mat-option value="price">Price (Low to High)</mat-option>
-                <mat-option value="time">Departure Time</mat-option>
-                <mat-option value="duration">Duration (Shortest)</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <button mat-raised-button color="primary" type="submit" [disabled]="!searchForm.valid || loading">
-              <mat-icon>search</mat-icon> Search Schedules
-            </button>
-          </div>
-        </form>
+      <div class="container">
+        <div class="search-card">
+          <h2>Search Bus Schedules</h2>
+          <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+            <!-- Form fields remain the same -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="from">From</label>
+                <input type="text" id="from" formControlName="from" placeholder="Departure City"
+                       [matAutocomplete]="fromAuto">
+                <mat-autocomplete #fromAuto="matAutocomplete" [displayWith]="displayLocationFn">
+                  <mat-option *ngFor="let location of filteredFromLocations | async" [value]="location">
+                    {{getLocationName(location)}}
+                  </mat-option>
+                </mat-autocomplete>
+                <div *ngIf="searchForm.get('from')?.invalid && searchForm.get('from')?.touched" class="error-message">
+                  Departure location is required
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="to">To</label>
+                <input type="text" id="to" formControlName="to" placeholder="Destination City"
+                       [matAutocomplete]="toAuto">
+                <mat-autocomplete #toAuto="matAutocomplete" [displayWith]="displayLocationFn">
+                  <mat-option *ngFor="let location of filteredToLocations | async" [value]="location">
+                    {{getLocationName(location)}}
+                  </mat-option>
+                </mat-autocomplete>
+                <div *ngIf="searchForm.get('to')?.invalid && searchForm.get('to')?.touched" class="error-message">
+                  Destination location is required
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" formControlName="date" [min]="minDate.toISOString().split('T')[0]">
+                <div *ngIf="searchForm.get('date')?.invalid && searchForm.get('date')?.touched" class="error-message">
+                  Date is required
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="sortBy">Sort By</label>
+                <select id="sortBy" formControlName="sortBy">
+                  <option value="departureTime">Departure Time</option>
+                  <option value="price">Price</option>
+                  <option value="duration">Duration</option>
+                </select>
+              </div>
+            </div>
+            <div class="button-row">
+              <button type="submit" class="btn btn-primary" [disabled]="searchForm.invalid || loading">
+                <span *ngIf="!loading">Search</span>
+                <span *ngIf="loading">Searching...</span>
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="loadAllSchedules()" [disabled]="loading">
+                <span *ngIf="!loading">View All Schedules</span>
+                <span *ngIf="loading">Loading...</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
+    </div>
 
-      <div *ngIf="loading" class="loading-spinner">
-        <mat-spinner diameter="40"></mat-spinner>
-        <p>Searching for schedules...</p>
-      </div>
-
-      <div *ngIf="searched && !loading" class="search-results">
-        <h3 *ngIf="searchResults.length === 0">No schedules found for your search criteria</h3>
-        
-        <div *ngIf="searchResults.length > 0" class="results-header">
-          <h3>{{ searchResults.length }} Schedules Found</h3>
-          <p>{{ searchForm.get('from')?.value }} to {{ searchForm.get('to')?.value }} on {{ formatDate(searchForm.get('date')?.value) }}</p>
+    <!-- Results section remains the same -->
+    <div class="results-container" *ngIf="searched">
+      <div class="container">
+        <div class="results-header">
+          <h2>Search Results</h2>
+          <p *ngIf="searchResults.length > 0">Found {{searchResults.length}} schedules</p>
         </div>
 
-        <mat-card *ngFor="let schedule of searchResults" class="schedule-card">
-          <mat-card-content>
-            <div class="schedule-header">
-              <div class="schedule-info">
-                <h3>{{ schedule.routeName }}</h3>
-                <p class="bus-type">{{ schedule.busType }}</p>
-              </div>
-              <div class="price-tag">
-                <span class="price">{{ schedule.price | currency:'RWF':'symbol':'1.0-0' }}</span>
-                <span class="per-person">per person</span>
-              </div>
+        <!-- No results message -->
+        <div class="no-results" *ngIf="noResultsFound">
+          <div class="no-results-card">
+            <i class="fas fa-exclamation-circle"></i>
+            <h3>No Schedules Found</h3>
+            <p>We couldn't find any bus schedules matching your search criteria or no schedules are available.</p>
+            <div class="suggestions">
+              <h4>Suggestions:</h4>
+              <ul>
+                <li>Try different dates or locations</li>
+                <li>Check if the route is available</li>
+                <li>Verify location names are correct</li>
+              </ul>
             </div>
+            <button class="btn btn-secondary" (click)="resetSearch()">New Search</button>
+          </div>
+        </div>
 
-            <mat-divider></mat-divider>
-
-            <div class="schedule-details">
-              <div class="time-details">
+        <div class="results-grid" *ngIf="searchResults.length > 0">
+          <div class="result-card" *ngFor="let schedule of searchResults">
+            <div class="result-header">
+              <div class="route-name">{{schedule.routeName}}</div>
+              <div class="bus-type">{{schedule.busType}}</div>
+            </div>
+            <div class="result-body">
+              <div class="time-info">
                 <div class="departure">
-                  <p class="time">{{ formatTime(schedule.departureTime) }}</p>
-                  <p class="location">{{ schedule.sourceLocation.locationName }}</p>
-                  <p class="city">{{ schedule.sourceLocation.city }}</p>
+                  <div class="time">{{formatTime(schedule.departureTime)}}</div>
+                  <div class="location">{{schedule.sourceLocation.locationName}}</div>
+                  <div class="date">{{formatDate(schedule.departureTime)}}</div>
                 </div>
-
-                <div class="journey-line">
-                  <span class="duration">{{ calculateDuration(schedule.departureTime, schedule.arrivalTime) }}</span>
+                <div class="duration">
+                  <div class="duration-time">{{calculateDuration(schedule.departureTime, schedule.arrivalTime)}}</div>
+                  <div class="duration-line"></div>
                 </div>
-
                 <div class="arrival">
-                  <p class="time">{{ formatTime(schedule.arrivalTime) }}</p>
-                  <p class="location">{{ schedule.destinationLocation.locationName }}</p>
-                  <p class="city">{{ schedule.destinationLocation.city }}</p>
+                  <div class="time">{{formatTime(schedule.arrivalTime)}}</div>
+                  <div class="location">{{schedule.destinationLocation.locationName}}</div>
+                  <div class="date">{{formatDate(schedule.arrivalTime)}}</div>
                 </div>
               </div>
-
-              <div class="bus-details">
-                <p><mat-icon>event_seat</mat-icon> {{ schedule.availableSeats }} seats available</p>
-                <p><mat-icon>directions_bus</mat-icon> Bus #{{ schedule.busNumber }}</p>
+              <div class="bus-info">
+                <div class="bus-number">Bus #{{schedule.busNumber}}</div>
+                <div class="seats-available">{{schedule.availableSeats}} seats available</div>
+              </div>
+              <div class="price-info">
+                <div class="price">{{schedule.price | currency:'RWF':'symbol':'1.0-0'}}</div>
               </div>
             </div>
-
-            <mat-divider></mat-divider>
-
-            <div class="schedule-actions">
-              <button mat-button color="primary" (click)="viewScheduleDetails(schedule.id)">
-                <mat-icon>info</mat-icon> Details
-              </button>
-              <button mat-raised-button color="primary" (click)="bookNow(schedule.id)">
-                <mat-icon>confirmation_number</mat-icon> Book Now
-              </button>
+            <div class="result-footer">
+              <button class="btn btn-outline" (click)="viewScheduleDetails(schedule.id)">View Details</button>
+              <button class="btn btn-primary" (click)="bookNow(schedule.id)" [disabled]="schedule.availableSeats <= 0">Book Now</button>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
       </div>
     </div>
   `,
   styles: [`
+    /* Existing styles */
+    .button-row {
+      display: flex;
+      gap: 10px; /* Add space between buttons */
+      margin-top: 15px; /* Add some margin above the buttons */
+    }
+    .no-results-card {
+      text-align: center;
+      padding: 40px 20px;
+      background-color: #f9f9f9;
+      border: 1px dashed #ddd;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+    .no-results-card i {
+      font-size: 48px;
+      color: #ffc107; /* Warning color */
+      margin-bottom: 15px;
+    }
+    .no-results-card h3 {
+      margin-bottom: 10px;
+      color: #555;
+    }
+    .no-results-card p {
+      color: #777;
+      margin-bottom: 20px;
+    }
+    .suggestions {
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto 20px auto;
+      padding: 15px;
+      background-color: #fff;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    .suggestions h4 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .suggestions ul {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 0;
+    }
+    .suggestions li {
+      margin-bottom: 5px;
+      color: #666;
+    }
+    .suggestions li::before {
+      content: '•';
+      color: #1a73e8; /* Primary color */
+      display: inline-block;
+      width: 1em;
+      margin-left: -1em;
+    }
+    /* Add other styles from previous response if needed */
     .search-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -354,165 +404,233 @@ export class ScheduleSearchComponent implements OnInit {
   loading = false;
   searchResults: Schedule[] = [];
   searched = false;
+  noResultsFound = false;
   minDate = new Date();
 
-  cities = [
-    'Kigali',
-    'Musanze',
-    'Huye',
-    'Rubavu',
-    'Nyamata',
-    'Rusizi',
-    'Nyagatare',
-    'Gisenyi',
-    'Butare',
-    'Kibuye'
-  ];
+  locations: BusLocation[] = [];
+  filteredFromLocations: Observable<BusLocation[]> = of([]);
+  filteredToLocations: Observable<BusLocation[]> = of([]);
 
-  filteredFromCities: Observable<string[]> = of([]);
-  filteredToCities: Observable<string[]> = of([]);
 
   constructor(
     private fb: FormBuilder,
     private scheduleService: ScheduleService,
-    private busService: BusService,
-    private router: Router
+    private busService: BusService, // Keep if used elsewhere, otherwise remove
+    private router: Router,
+    private authservice: AuthService,
+    private locationService: BusLocationService,
+    private snackBar: MatSnackBar // Inject MatSnackBar
   ) {
     this.searchForm = this.fb.group({
       from: ['', Validators.required],
       to: ['', Validators.required],
       date: [new Date(), Validators.required],
-      passengers: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
-      sortBy: ['price']
+      sortBy: ['departureTime']
     });
   }
 
   ngOnInit() {
-    // Initialize autocomplete filters
-    this.filteredFromCities = this.searchForm.get('from')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value || ''))
-    );
+    this.locationService.getAllLocations().subscribe(locations => {
+      this.locations = locations;
+      // Re-initialize filtering observables after locations are loaded
+      this.filteredFromLocations = this.setupLocationFiltering('from');
+      this.filteredToLocations = this.setupLocationFiltering('to');
+    });
 
-    this.filteredToCities = this.searchForm.get('to')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value || ''))
-    );
+    // Initial setup before locations are loaded
+    this.filteredFromLocations = this.setupLocationFiltering('from');
+    this.filteredToLocations = this.setupLocationFiltering('to');
   }
 
-  private _filter(value: string): string[] {
-    const filterValue = value.toLowerCase();
-    return this.cities.filter(city => city.toLowerCase().includes(filterValue));
-  }
-
-  displayFn(city: string): string {
-    return city ? city : '';
-  }
-
-  onFromInput(event: any) {
-    const value = event.target.value;
-    if (!this.cities.includes(value)) {
-      this.searchForm.get('from')!.setValue('');
+  private setupLocationFiltering(controlName: string): Observable<BusLocation[]> {
+    const control = this.searchForm.get(controlName);
+    if (!control) {
+      return of(this.locations); // Return all if control not found yet
     }
+    return control.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterLocations(value))
+    );
   }
 
-  onToInput(event: any) {
-    const value = event.target.value;
-    if (!this.cities.includes(value)) {
-      this.searchForm.get('to')!.setValue('');
-    }
+  private _filterLocations(value: any): BusLocation[] {
+    if (!value) return this.locations;
+
+    const filterValue = typeof value === 'string' ? value.toLowerCase() :
+      value.locationName ? value.locationName.toLowerCase() : '';
+
+    return this.locations.filter(location =>
+      (location.locationName?.toLowerCase() || '').includes(filterValue) ||
+      (location.city?.toLowerCase() || '').includes(filterValue)
+    );
+  }
+
+  displayLocationFn(location: BusLocation): string {
+    return location ? this.getLocationName(location) : '';
+  }
+
+  getLocationName(location: BusLocation): string {
+    return location ? `${location.locationName}, ${location.city}` : '';
   }
 
   onSearch() {
-    if (this.searchForm.valid) {
-      this.loading = true;
-      this.searched = true;
-
-      const sourceCity = this.searchForm.get('from')?.value;
-      const destCity = this.searchForm.get('to')?.value;
-      const departureDate = this.searchForm.get('date')?.value;
-
-      this.scheduleService.searchSchedulesByCity(sourceCity, destCity, departureDate).subscribe({
-        next: (schedules: Schedule[]) => {
-          this.searchResults = this.sortResults(schedules, this.searchForm.get('sortBy')?.value);
-          this.loading = false;
-        },
-        error: (error: any) => {
-          console.error('Error searching schedules:', error);
-          this.loading = false;
-        }
-      });
+    this.noResultsFound = false;
+    if (this.searchForm.invalid) {
+      this.snackBar.open('Please fill in all required search fields.', 'Close', { duration: 3000 });
+      return;
     }
-  }
 
-  private sortResults(results: Schedule[], sortBy: string): Schedule[] {
-    return [...results].sort((a, b) => {
-      switch (sortBy) {
-        case 'price':
-          return a.price - b.price;
-        case 'time':
-          return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
-        case 'duration':
-          const aDuration = this.calculateDurationMinutes(a.departureTime, a.arrivalTime);
-          const bDuration = this.calculateDurationMinutes(b.departureTime, b.arrivalTime);
-          return aDuration - bDuration;
-        default:
-          return 0;
+    this.loading = true;
+    this.searched = true;
+
+    const sourceLocation = this.searchForm.get('from')?.value;
+    const destLocation = this.searchForm.get('to')?.value;
+    const departureDate = this.searchForm.get('date')?.value;
+
+    // Ensure locations are selected objects with IDs
+    if (typeof sourceLocation !== 'object' || !sourceLocation?.id ||
+      typeof destLocation !== 'object' || !destLocation?.id) {
+      this.snackBar.open('Please select valid locations from the list.', 'Close', { duration: 3000 });
+      this.loading = false;
+      this.searched = false; // Reset searched state if input is invalid
+      return;
+    }
+
+    this.scheduleService.searchSchedules(sourceLocation.id, destLocation.id, departureDate).subscribe({
+      next: (schedules: Schedule[]) => {
+        this.searchResults = this.sortResults(schedules, this.searchForm.get('sortBy')?.value);
+        this.loading = false;
+        this.noResultsFound = this.searchResults.length === 0;
+      },
+      error: (error: any) => {
+        console.error('Error searching schedules:', error);
+        this.snackBar.open(`Error searching schedules: ${error.message || 'Unknown error'}`, 'Close', { duration: 5000 });
+        this.loading = false;
+        this.noResultsFound = true; // Assume no results on error
       }
     });
   }
 
+  loadAllSchedules() {
+    this.loading = true;
+    this.searched = true;
+    this.noResultsFound = false;
+    this.searchForm.reset({ sortBy: 'departureTime' }); // Reset form but keep sort order
+
+    this.scheduleService.getAllSchedules().subscribe({
+      next: (schedules: Schedule[]) => {
+        this.searchResults = this.sortResults(schedules, this.searchForm.get('sortBy')?.value);
+        this.loading = false;
+        this.noResultsFound = this.searchResults.length === 0;
+        if (!this.noResultsFound) {
+          this.snackBar.open(`Loaded ${schedules.length} schedules.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading all schedules:', error);
+        this.snackBar.open(`Error loading schedules: ${error.message || 'Unknown error'}`, 'Close', { duration: 5000 });
+        this.loading = false;
+        this.noResultsFound = true;
+      }
+    });
+  }
+
+  resetSearch() {
+    this.searchForm.reset({ sortBy: 'departureTime' });
+    this.searchResults = [];
+    this.searched = false;
+    this.noResultsFound = false;
+    // Re-setup filtering as reset might clear observables
+    this.filteredFromLocations = this.setupLocationFiltering('from');
+    this.filteredToLocations = this.setupLocationFiltering('to');
+  }
+
+
+  private sortResults(results: Schedule[], sortBy: string): Schedule[] {
+    // Sorting logic remains the same
+    if (!results || results.length === 0) return [];
+
+    switch (sortBy) {
+      case 'price':
+        return [...results].sort((a, b) => a.price - b.price);
+      case 'duration':
+        return [...results].sort((a, b) =>
+          this.calculateDurationMinutes(a.departureTime, a.arrivalTime) -
+          this.calculateDurationMinutes(b.departureTime, b.arrivalTime)
+        );
+      case 'departureTime':
+      default:
+        return [...results].sort((a, b) =>
+          new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime()
+        );
+    }
+  }
+
+  // Formatting and calculation methods remain the same
   formatDate(date: Date): string {
     if (!date) return '';
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    // Consider using Angular's DatePipe for more robust formatting and localization
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   formatTime(dateTime: Date): string {
     if (!dateTime) return '';
     const d = new Date(dateTime);
+    // Consider using Angular's DatePipe
     return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   }
 
   calculateDuration(departureTime: Date, arrivalTime: Date): string {
     if (!departureTime || !arrivalTime) return '';
-    
+
     const depTime = new Date(departureTime).getTime();
     const arrTime = new Date(arrivalTime).getTime();
     const diffMs = arrTime - depTime;
-    
+
+    if (diffMs < 0) return 'Invalid dates'; // Handle cases where arrival is before departure
+
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${hours}h ${minutes}m`;
   }
 
   calculateDurationMinutes(departureTime: Date, arrivalTime: Date): number {
     if (!departureTime || !arrivalTime) return 0;
-    
+
     const depTime = new Date(departureTime).getTime();
     const arrTime = new Date(arrivalTime).getTime();
     const diffMs = arrTime - depTime;
-    
+
+    if (diffMs < 0) return 0; // Or handle as error
+
     return Math.floor(diffMs / (1000 * 60));
   }
 
+
   viewScheduleDetails(scheduleId: number) {
-    this.router.navigate(['/schedule', scheduleId]);
+    this.router.navigate(['/schedules', scheduleId]);
   }
 
-  bookNow(scheduleId: number) {
-    this.router.navigate(['/schedule-booking', scheduleId], {
-      queryParams: {
-        passengers: this.searchForm.get('passengers')?.value,
-        date: this.formatDateParam(this.searchForm.get('date')?.value)
-      }
-    });
+
+  bookNow(scheduleId: number): void {
+    const currentUser = this.authservice.getCurrentUser();
+    if (!currentUser) {
+      this.snackBar.open('Please log in to book a schedule.', 'Close', { duration: 3000 });
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.router.navigate(['/schedule-booking', scheduleId]);
   }
 
+  // formatDateParam remains the same
   private formatDateParam(date: Date): string {
-    if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().split('T')[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
+

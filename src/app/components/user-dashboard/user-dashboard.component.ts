@@ -5,6 +5,7 @@ import {BookingService } from '../../services/bus-booking.service';
 import { UserService, User as ServiceUser } from '../../services/user.service';
 import { error } from 'console';
 import { FormsModule } from '@angular/forms';
+import {AuthService} from '../../services/auth.service';
 
 interface User {
   id: string;
@@ -458,7 +459,8 @@ export class UserDashboardComponent implements OnInit {
   constructor(
     private userService: UserService,
     private bookingService: BookingService,
-    private router: Router
+    private router: Router,
+    private authservice: AuthService
   ) {}
 
   ngOnInit() {
@@ -500,8 +502,11 @@ export class UserDashboardComponent implements OnInit {
   }
 
   private loadBookings() {
-    this.bookingService.getActiveBookings().subscribe({
+    const userId = this.authservice.getCurrentUserId();
+    this.bookingService.getUserBookings(userId).subscribe({
       next: (bookings: any) => {
+        //only get booking with active status
+
         this.activeBookings = bookings;
       },
       error: (error: any) => {

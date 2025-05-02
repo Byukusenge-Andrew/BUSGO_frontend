@@ -75,7 +75,8 @@ import { AuthService } from '../../services/auth.service';
           <a mat-button routerLink="/company/routes">Routes</a>
           <a mat-button routerLink="/company/location">Locations</a>
           <a mat-button routerLink="/company/schedules">Schedules</a>
-          <a mat-button routerLink="/company/bookings">Bookings</a>
+          <a mat-button routerLink="/company/buses">Buses</a>
+          <a mat-button routerLink="/company/booking">Bookings</a>
           <button mat-icon-button [matMenuTriggerFor]="companyMenu">
             <img alt="accountsvg" src="../../../assets/images/account_circle.svg" style="fill: #1a1a1a;color: black">
           </button>

@@ -436,7 +436,7 @@ export class AdminCompaniesComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.adminService.createUser(result).subscribe({
+        this.adminService.createCompany(result).subscribe({
           next: () => {
             this.loadCompanies();
           }

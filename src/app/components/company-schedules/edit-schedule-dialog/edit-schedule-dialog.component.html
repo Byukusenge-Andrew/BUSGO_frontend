@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>Edit Schedule (ID: {{ data.schedule.id }})</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="editForm" class="edit-schedule-form">
+
+    <mat-form-field appearance="fill">
+      <mat-label>Route</mat-label>
+      <mat-select formControlName="routeId" required>
+        <mat-option *ngFor="let route of routes" [value]="route.id">
+          {{ route.routeName }} ({{ route.origin }} to {{ route.destination}})
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="editForm.get('routeId')?.hasError('required')">Route is required</mat-error>
+    </mat-form-field>
+
+    <!-- Source/Destination are often derived from the Route, display if needed -->
+    <!--
+    <mat-form-field appearance="fill">
+      <mat-label>Source Location</mat-label>
+      <input matInput formControlName="sourceLocationId" readonly>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Destination Location</mat-label>
+      <input matInput formControlName="destinationLocationId" readonly>
+    </mat-form-field>
+    -->
+
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Departure Time</mat-label>
+        <input matInput [matDatepicker]="depPicker" formControlName="departureTime" required [min]="minDate">
+        <mat-datepicker-toggle matSuffix [for]="depPicker"></mat-datepicker-toggle>
+        <mat-datepicker #depPicker></mat-datepicker>
+        <mat-error *ngIf="editForm.get('departureTime')?.hasError('required')">Departure time is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Arrival Time</mat-label>
+        <input matInput [matDatepicker]="arrPicker" formControlName="arrivalTime" required [min]="editForm.get('departureTime')?.value || minDate">
+        <mat-datepicker-toggle matSuffix [for]="arrPicker"></mat-datepicker-toggle>
+        <mat-datepicker #arrPicker></mat-datepicker>
+        <mat-error *ngIf="editForm.get('arrivalTime')?.hasError('required')">Arrival time is required</mat-error>
+        <!-- Add validation for arrival > departure if needed -->
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+       <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Bus Number</mat-label>
+        <input matInput formControlName="busNumber" required>
+        <mat-error *ngIf="editForm.get('busNumber')?.hasError('required')">Bus number is required</mat-error>
+      </mat-form-field>
+
+       <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Bus Type</mat-label>
+        <input matInput formControlName="busType" required>
+         <mat-error *ngIf="editForm.get('busType')?.hasError('required')">Bus type is required</mat-error>
+      </mat-form-field>
+    </div>
+
+
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Price (Fare)</mat-label>
+        <input matInput type="number" formControlName="price" required min="0">
+        <mat-error *ngIf="editForm.get('price')?.hasError('required')">Price is required</mat-error>
+        <mat-error *ngIf="editForm.get('price')?.hasError('min')">Price must be non-negative</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="form-field-half">
+        <mat-label>Total Seats</mat-label>
+        <input matInput type="number" formControlName="totalSeats" required min="1">
+        <mat-error *ngIf="editForm.get('totalSeats')?.hasError('required')">Total seats are required</mat-error>
+        <mat-error *ngIf="editForm.get('totalSeats')?.hasError('min')">Must have at least 1 seat</mat-error>
+      </mat-form-field>
+    </div>
+
+     <mat-form-field appearance="fill">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status" required>
+        <mat-option *ngFor="let status of scheduleStatus" [value]="status">
+          {{ status }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="editForm.get('status')?.hasError('required')">Status is required</mat-error>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="editForm.invalid">Save Changes</button>
+</mat-dialog-actions>
+
+

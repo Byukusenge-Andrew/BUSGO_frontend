@@ -32,7 +32,7 @@ import { BusLocationService, BusLocation } from '../../services/bus-location.ser
     <div class="view-locations-container">
       <div class="header">
         <h1>Manage Locations</h1>
-        <a routerLink="/add-location" mat-raised-button color="primary">
+        <a routerLink="/company/location/add" mat-raised-button color="primary">
           <mat-icon>add</mat-icon> Add New Location
         </a>
       </div>
