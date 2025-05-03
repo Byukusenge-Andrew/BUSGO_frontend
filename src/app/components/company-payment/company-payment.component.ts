@@ -1,761 +1,570 @@
-import { Component, OnInit } from '@angular/core';
+
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { MatTableModule, MatTable, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDividerModule } from '@angular/material/divider';
 
-interface PaymentMethod {
-  id: string;
-  type: 'CREDIT_CARD' | 'BANK_TRANSFER' | 'MOBILE_MONEY';
-  name: string;
-  details: string;
-  isDefault: boolean;
-}
-
-interface Transaction {
-  id: string;
-  date: Date;
-  amount: number;
-  currency: string;
-  description: string;
-  status: 'COMPLETED' | 'PENDING' | 'FAILED';
-  paymentMethod: string;
-}
+import { Payment, PaymentMethod, PaymentStatus } from '../../models/payment.model';
+import { PaymentService } from '../../services/payment.service';
+import { PaymentDialogComponent } from './payment-dialog/payment-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { DatePipe } from '@angular/common';
+import {RouterLink} from '@angular/router';
 
 @Component({
-  selector: 'app-company-payment',
+  selector: 'app-admin-company-payments',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatTabsModule,
-    MatIconModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    MatSlideToggleModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatChipsModule,
     MatTooltipModule,
-    MatBadgeModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatDividerModule,
-    MatChipsModule
+    RouterLink
   ],
+  providers: [DatePipe],
   template: `
-    <div class="payment-container">
-      <div class="page-header">
-        <h1>Payment Management</h1>
-        <p class="subtitle">Manage your payment methods, view transactions, and update billing information</p>
-      </div>
+    <div class="admin-payments-container">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Company Payments</mat-card-title>
+          <mat-card-subtitle>Manage all payment transactions</mat-card-subtitle>
+        </mat-card-header>
 
-      <mat-card class="main-card">
         <mat-card-content>
-          <mat-tab-group animationDuration="300ms" class="custom-tabs">
-            <mat-tab label="Payment Methods">
-              <div class="tab-content">
-                <div class="section-header">
-                  <div class="header-content">
-                    <h2>Your Payment Methods</h2>
-                    <p class="section-description">Add and manage your payment methods for receiving payments</p>
-                  </div>
-                  <button mat-raised-button color="primary" (click)="openAddPaymentMethod()" class="action-button">
-                    <mat-icon>add_circle</mat-icon> Add Payment Method
+          <!-- Filter Form -->
+          <form [formGroup]="filterForm" class="filter-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Search</mat-label>
+              <input matInput (keyup)="applyFilter($event)" placeholder="Search payments..." formControlName="search">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option value="PENDING">Pending</mat-option>
+                <mat-option value="COMPLETED">Completed</mat-option>
+                <mat-option value="FAILED">Failed</mat-option>
+                <mat-option value="REFUNDED">Refunded</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Payment Method</mat-label>
+              <mat-select formControlName="paymentMethod">
+                <mat-option value="">All Methods</mat-option>
+                <mat-option value="CASH">Cash</mat-option>
+                <mat-option value="CREDIT_CARD">Credit Card</mat-option>
+                <mat-option value="DEBIT_CARD">Debit Card</mat-option>
+                <mat-option value="UPI">UPI</mat-option>
+                <mat-option value="MOBILE_MONEY">Mobile Money</mat-option>
+                <mat-option value="BANK_TRANSFER">Bank Transfer</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date Range</mat-label>
+              <mat-date-range-input [rangePicker]="picker">
+                <input matStartDate placeholder="Start date" formControlName="startDate">
+                <input matEndDate placeholder="End date" formControlName="endDate">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+
+            <div class="filter-actions">
+              <button mat-raised-button color="primary" (click)="applyFilters()">
+                <mat-icon>filter_list</mat-icon> Apply Filters
+              </button>
+              <button mat-button (click)="resetFilters()">
+                <mat-icon>clear</mat-icon> Reset
+              </button>
+            </div>
+          </form>
+
+          <!-- Payment Stats -->
+          <div class="payment-stats">
+            <div class="stat-card">
+              <div class="stat-value">{{ paymentStats.totalPayments }}</div>
+              <div class="stat-label">Total Payments</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ paymentStats.totalAmount | currency }}</div>
+              <div class="stat-label">Total Amount</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ paymentStats.completedPayments }}</div>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ paymentStats.pendingPayments }}</div>
+              <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ paymentStats.failedPayments }}</div>
+              <div class="stat-label">Failed</div>
+            </div>
+          </div>
+
+          <mat-divider class="my-3"></mat-divider>
+
+          <!-- Actions -->
+          <div class="table-actions">
+            <button mat-raised-button color="primary" (click)="openPaymentDialog()">
+              <mat-icon>add</mat-icon> New Payment
+            </button>
+            <button mat-raised-button color="accent" (click)="exportPayments()">
+              <mat-icon>download</mat-icon> Export
+            </button>
+          </div>
+
+          <!-- Payments Table -->
+          <div class="table-container mat-elevation-z2">
+            <table mat-table [dataSource]="dataSource" matSort>
+              <!-- Payment ID Column -->
+              <ng-container matColumnDef="paymentId">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+                <td mat-cell *matCellDef="let payment"> {{ payment.paymentId }} </td>
+              </ng-container>
+
+              <!-- Booking ID Column -->
+              <ng-container matColumnDef="bookingId">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Booking ID </th>
+                <td mat-cell *matCellDef="let payment">
+                  <a [routerLink]="['/admin/bookings', payment.bookingId]">{{ payment.bookingId }}</a>
+                </td>
+              </ng-container>
+
+              <!-- Amount Column -->
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount </th>
+                <td mat-cell *matCellDef="let payment"> {{ payment.amount | currency }} </td>
+              </ng-container>
+
+              <!-- Payment Method Column -->
+              <ng-container matColumnDef="paymentMethod">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Method </th>
+                <td mat-cell *matCellDef="let payment">
+                  <span class="payment-method-chip">{{ payment.paymentMethod }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Transaction ID Column -->
+              <ng-container matColumnDef="transactionId">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Transaction ID </th>
+                <td mat-cell *matCellDef="let payment"> {{ payment.transactionId || 'N/A' }} </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+                <td mat-cell *matCellDef="let payment">
+                  <span class="status-chip" [ngClass]="'status-' + payment.status.toLowerCase()">
+                    {{ payment.status }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Payment Date Column -->
+              <ng-container matColumnDef="paymentDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+                <td mat-cell *matCellDef="let payment"> {{ payment.paymentDate | date:'medium' }} </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let payment">
+                  <button mat-icon-button color="primary" matTooltip="Edit Payment" (click)="editPayment(payment)">
+                    <mat-icon>edit</mat-icon>
                   </button>
-                </div>
+                  <button mat-icon-button color="warn" matTooltip="Delete Payment" (click)="deletePayment(payment)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="View Details" (click)="viewPaymentDetails(payment)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
 
-                <div class="payment-methods">
-                  <div *ngFor="let method of paymentMethods" class="payment-method-card">
-                    <div class="payment-method-header">
-                      <div class="payment-method-icon" [ngClass]="method.type.toLowerCase()">
-                        <mat-icon>{{ getPaymentMethodIcon(method.type) }}</mat-icon>
-                      </div>
-                      <div class="payment-method-info">
-                        <h4>{{ method.name }}</h4>
-                        <p>{{ method.details }}</p>
-                      </div>
-                      <div class="payment-method-actions">
-                        <button mat-icon-button color="primary" (click)="editPaymentMethod(method)" matTooltip="Edit payment method">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deletePaymentMethod(method)" matTooltip="Delete payment method">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                    </div>
-                    <mat-divider></mat-divider>
-                    <div class="payment-method-footer">
-                      <mat-slide-toggle [checked]="method.isDefault" (change)="setDefaultPaymentMethod(method)">
-                        Set as default
-                      </mat-slide-toggle>
-                      <div *ngIf="method.isDefault">
-                        <mat-chip color="primary" selected>Default</mat-chip>
-                      </div>
-                    </div>
-                  </div>
-                  <div *ngIf="paymentMethods.length === 0" class="no-payment-methods">
-                    <mat-icon>payment</mat-icon>
-                    <h3>No Payment Methods</h3>
-                    <p>You haven't added any payment methods yet.</p>
-                    <button mat-stroked-button color="primary" (click)="openAddPaymentMethod()">
-                      <mat-icon>add</mat-icon> Add Your First Payment Method
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </mat-tab>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
-            <mat-tab label="Transaction History">
-              <div class="tab-content">
-                <div class="section-header">
-                  <div class="header-content">
-                    <h2>Recent Transactions</h2>
-                    <p class="section-description">View your payment history and transaction details</p>
-                  </div>
-                  <div class="transaction-summary">
-                    <div class="summary-item">
-                      <span class="summary-label">Total Revenue</span>
-                      <span class="summary-value">RWF {{ getTotalRevenue() | number }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="summary-label">Pending</span>
-                      <span class="summary-value pending">RWF {{ getPendingAmount() | number }}</span>
-                    </div>
-                  </div>
-                </div>
+              <!-- Row shown when there is no matching data -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="8">No payments found</td>
+              </tr>
+            </table>
 
-                <div class="table-container">
-                  <table mat-table [dataSource]="transactions" matSort class="transactions-table">
-                    <!-- Date Column -->
-                    <ng-container matColumnDef="date">
-                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-                      <td mat-cell *matCellDef="let transaction">{{ transaction.date | date:'mediumDate' }}</td>
-                    </ng-container>
-
-                    <!-- Amount Column -->
-                    <ng-container matColumnDef="amount">
-                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
-                      <td mat-cell *matCellDef="let transaction">
-                        <span class="amount">{{ transaction.currency }} {{ transaction.amount | number }}</span>
-                      </td>
-                    </ng-container>
-
-                    <!-- Description Column -->
-                    <ng-container matColumnDef="description">
-                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
-                      <td mat-cell *matCellDef="let transaction">{{ transaction.description }}</td>
-                    </ng-container>
-
-                    <!-- Payment Method Column -->
-                    <ng-container matColumnDef="paymentMethod">
-                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Payment Method</th>
-                      <td mat-cell *matCellDef="let transaction">
-                        <div class="payment-method-cell">
-                          <mat-icon class="payment-icon">{{ getPaymentMethodIcon(getPaymentMethodType(transaction.paymentMethod)) }}</mat-icon>
-                          <span>{{ transaction.paymentMethod }}</span>
-                        </div>
-                      </td>
-                    </ng-container>
-
-                    <!-- Status Column -->
-                    <ng-container matColumnDef="status">
-                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-                      <td mat-cell *matCellDef="let transaction">
-                        <span class="status-badge" [ngClass]="transaction.status.toLowerCase()">
-                          {{ transaction.status }}
-                        </span>
-                      </td>
-                    </ng-container>
-
-                    <!-- Actions Column -->
-                    <ng-container matColumnDef="actions">
-                      <th mat-header-cell *matHeaderCellDef>Actions</th>
-                      <td mat-cell *matCellDef="let transaction">
-                        <button mat-icon-button color="primary" (click)="viewTransactionDetails(transaction)" matTooltip="View details">
-                          <mat-icon>visibility</mat-icon>
-                        </button>
-                        <button mat-icon-button color="accent" (click)="downloadReceipt(transaction)" matTooltip="Download receipt">
-                          <mat-icon>receipt</mat-icon>
-                        </button>
-                      </td>
-                    </ng-container>
-
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                  </table>
-
-                  <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of transactions"></mat-paginator>
-                </div>
-              </div>
-            </mat-tab>
-
-            <mat-tab label="Billing Information">
-              <div class="tab-content">
-                <div class="section-header">
-                  <div class="header-content">
-                    <h2>Billing Information</h2>
-                    <p class="section-description">Update your company billing details for invoices and payments</p>
-                  </div>
-                </div>
-
-                <div class="billing-form-container">
-                  <form [formGroup]="billingForm" (ngSubmit)="onBillingSubmit()" class="billing-form">
-                    <div class="form-row">
-                      <mat-form-field appearance="outline">
-                        <mat-label>Company Name</mat-label>
-                        <input matInput formControlName="companyName" required>
-                        <mat-icon matPrefix>business</mat-icon>
-                      </mat-form-field>
-
-                      <mat-form-field appearance="outline">
-                        <mat-label>Tax ID / VAT Number</mat-label>
-                        <input matInput formControlName="taxId">
-                        <mat-icon matPrefix>receipt</mat-icon>
-                      </mat-form-field>
-                    </div>
-
-                    <mat-form-field appearance="outline">
-                      <mat-label>Billing Address</mat-label>
-                      <textarea matInput formControlName="billingAddress" rows="3" required></textarea>
-                      <mat-icon matPrefix>location_on</mat-icon>
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline">
-                      <mat-label>Billing Email</mat-label>
-                      <input matInput formControlName="billingEmail" type="email" required>
-                      <mat-icon matPrefix>email</mat-icon>
-                    </mat-form-field>
-
-                    <div class="form-actions">
-                      <button mat-stroked-button type="button" (click)="resetBillingForm()">Reset</button>
-                      <button mat-raised-button color="primary" type="submit" [disabled]="!billingForm.valid || !billingForm.dirty">
-                        <mat-icon>save</mat-icon> Save Billing Information
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </mat-tab>
-          </mat-tab-group>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
   `,
   styles: [`
-    .payment-container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+    .admin-payments-container {
+      padding: 20px;
     }
 
-    .page-header {
-      margin-bottom: 2rem;
-    }
-
-    .page-header h1 {
-      font-size: 2rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: var(--primary-black);
-    }
-
-    .subtitle {
-      color: var(--text-dark);
-      font-size: 1rem;
-    }
-
-    .main-card {
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .custom-tabs {
-      margin-top: 1rem;
-    }
-
-    .tab-content {
-      padding: 1.5rem 0;
-    }
-
-    .section-header {
+    .filter-form {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .header-content {
+    .filter-form mat-form-field {
       flex: 1;
+      min-width: 200px;
     }
 
-    .header-content h2 {
-      font-size: 1.5rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: var(--primary-black);
-    }
-
-    .section-description {
-      color: var(--text-dark);
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    .action-button {
+    .filter-actions {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-    }
-
-    .payment-methods {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .payment-method-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .payment-method-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .payment-method-header {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .payment-method-icon {
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 1rem;
-    }
-
-    .payment-method-icon.credit_card {
-      background-color: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .payment-method-icon.bank_transfer {
-      background-color: #e8f5e9;
-      color: #388e3c;
-    }
-
-    .payment-method-icon.mobile_money {
-      background-color: #fff3e0;
-      color: #f57c00;
-    }
-
-    .payment-method-info {
-      flex: 1;
-    }
-
-    .payment-method-info h4 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    .payment-method-info p {
-      margin: 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .payment-method-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .payment-method-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1rem;
-      padding-top: 1rem;
-    }
-
-    .no-payment-methods {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 3rem;
-      background-color: #f5f5f5;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .no-payment-methods mat-icon {
-      font-size: 3rem;
-      width: 3rem;
-      height: 3rem;
-      color: #9e9e9e;
-    }
-
-    .no-payment-methods h3 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 500;
-    }
-
-    .no-payment-methods p {
-      color: #666;
-      margin: 0 0 1rem 0;
-    }
-
-    .transaction-summary {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .summary-item {
-      display: flex;
-      flex-direction: column;
+      gap: 10px;
       align-items: flex-end;
     }
 
-    .summary-label {
-      font-size: 0.8rem;
-      color: #666;
-    }
-
-    .summary-value {
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: #388e3c;
-    }
-
-    .summary-value.pending {
-      color: #f57c00;
+    .table-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
     }
 
     .table-container {
       overflow-x: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
     }
 
-    .transactions-table {
+    table {
       width: 100%;
     }
 
-    .amount {
-      font-weight: 500;
-    }
-
-    .payment-method-cell {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .payment-icon {
-      font-size: 1.2rem;
-      color: #666;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
+    .status-chip {
+      padding: 4px 8px;
       border-radius: 16px;
-      font-size: 0.8rem;
+      font-size: 12px;
       font-weight: 500;
+      text-transform: uppercase;
     }
 
-    .status-badge.completed {
-      background-color: #e8f5e9;
+    .status-completed {
+      background-color: #c8e6c9;
       color: #2e7d32;
     }
 
-    .status-badge.pending {
-      background-color: #fff3e0;
-      color: #f57c00;
+    .status-pending {
+      background-color: #fff9c4;
+      color: #f57f17;
     }
 
-    .status-badge.failed {
-      background-color: #ffebee;
+    .status-failed {
+      background-color: #ffcdd2;
       color: #c62828;
     }
 
-    .billing-form-container {
-      max-width: 800px;
+    .status-refunded {
+      background-color: #e1f5fe;
+      color: #0277bd;
     }
 
-    .billing-form {
+    .payment-method-chip {
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      font-size: 12px;
+    }
+
+    .payment-stats {
       display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .form-row {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .form-row mat-form-field {
+    .stat-card {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 16px;
       flex: 1;
+      min-width: 150px;
+      text-align: center;
     }
 
-    mat-form-field {
-      width: 100%;
+    .stat-value {
+      font-size: 24px;
+      font-weight: 500;
+      color: #3f51b5;
     }
 
-    mat-form-field mat-icon {
-      margin-right: 0.5rem;
-      color: #666;
+    .stat-label {
+      font-size: 14px;
+      color: #757575;
+      margin-top: 4px;
     }
 
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .form-actions button {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .transaction-summary {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .form-row {
-        flex-direction: column;
-        gap: 1rem;
-      }
+    .my-3 {
+      margin-top: 16px;
+      margin-bottom: 16px;
     }
   `]
 })
-export class CompanyPaymentComponent implements OnInit {
-  paymentMethods: PaymentMethod[] = [];
-  transactions: Transaction[] = [];
-  billingForm: FormGroup;
-  displayedColumns: string[] = ['date', 'amount', 'description', 'paymentMethod', 'status', 'actions'];
+export class AdminCompanyPaymentsComponent implements OnInit {
+  displayedColumns: string[] = ['paymentId', 'bookingId', 'amount', 'paymentMethod', 'transactionId', 'status', 'paymentDate', 'actions'];
+  dataSource = new MatTableDataSource<Payment>([]);
+  filterForm: FormGroup;
+
+  paymentStats = {
+    totalPayments: 0,
+    totalAmount: 0,
+    completedPayments: 0,
+    pendingPayments: 0,
+    failedPayments: 0,
+    refundedPayments: 0,
+    paymentsByMethod: {}
+  };
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
+    private paymentService: PaymentService,
+    private dialog: MatDialog,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private datePipe: DatePipe
   ) {
-    this.billingForm = this.fb.group({
-      companyName: ['', Validators.required],
-      taxId: [''],
-      billingAddress: ['', Validators.required],
-      billingEmail: ['', [Validators.required, Validators.email]]
+    this.filterForm = this.fb.group({
+      search: [''],
+      status: [''],
+      paymentMethod: [''],
+      startDate: [null],
+      endDate: [null]
     });
   }
 
   ngOnInit(): void {
-    this.loadPaymentMethods();
-    this.loadTransactions();
-    this.loadBillingInfo();
-  }
+    this.loadPayments();
+    this.loadPaymentStats();
 
-  loadPaymentMethods(): void {
-    // In a real app, this would fetch from the API
-    this.paymentMethods = [
-      {
-        id: 'PM001',
-        type: 'CREDIT_CARD',
-        name: 'Visa ending in 4242',
-        details: 'Expires 12/25',
-        isDefault: true
-      },
-      {
-        id: 'PM002',
-        type: 'BANK_TRANSFER',
-        name: 'Bank Account',
-        details: 'Acct: ****1234, Bank: Kigali Bank',
-        isDefault: false
-      },
-      {
-        id: 'PM003',
-        type: 'MOBILE_MONEY',
-        name: 'Mobile Money',
-        details: '+250 788 123 456',
-        isDefault: false
-      }
-    ];
-  }
-
-  loadTransactions(): void {
-    // In a real app, this would fetch from the API
-    this.transactions = [
-      {
-        id: 'TR001',
-        date: new Date(2023, 5, 15),
-        amount: 150000,
-        currency: 'RWF',
-        description: 'Monthly subscription',
-        status: 'COMPLETED',
-        paymentMethod: 'Visa ending in 4242'
-      },
-      {
-        id: 'TR002',
-        date: new Date(2023, 5, 10),
-        amount: 75000,
-        currency: 'RWF',
-        description: 'Additional route fee',
-        status: 'COMPLETED',
-        paymentMethod: 'Bank Account'
-      },
-      {
-        id: 'TR003',
-        date: new Date(2023, 5, 5),
-        amount: 50000,
-        currency: 'RWF',
-        description: 'Premium features',
-        status: 'PENDING',
-        paymentMethod: 'Mobile Money'
-      },
-      {
-        id: 'TR004',
-        date: new Date(2023, 4, 28),
-        amount: 100000,
-        currency: 'RWF',
-        description: 'Monthly subscription',
-        status: 'FAILED',
-        paymentMethod: 'Visa ending in 4242'
-      }
-    ];
-  }
-
-  loadBillingInfo(): void {
-    // In a real app, this would fetch from the API
-    this.billingForm.patchValue({
-      companyName: 'Rwanda Express',
-      taxId: '123456789',
-      billingAddress: 'KN 5 Rd, Kigali, Rwanda',
-      billingEmail: 'billing@rwandaexpress.com'
+    // Subscribe to filter form changes
+    this.filterForm.valueChanges.subscribe(() => {
+      this.applyFilters();
     });
   }
 
-  getPaymentMethodIcon(type: string): string {
-    switch (type) {
-      case 'CREDIT_CARD':
-        return 'credit_card';
-      case 'BANK_TRANSFER':
-        return 'account_balance';
-      case 'MOBILE_MONEY':
-        return 'smartphone';
-      default:
-        return 'payment';
-    }
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
-  getPaymentMethodType(paymentMethod: string): string {
-    if (paymentMethod.includes('Visa') || paymentMethod.includes('Mastercard')) {
-      return 'CREDIT_CARD';
-    } else if (paymentMethod.includes('Bank')) {
-      return 'BANK_TRANSFER';
-    } else if (paymentMethod.includes('Mobile')) {
-      return 'MOBILE_MONEY';
-    }
-    return 'payment';
-  }
-
-  getTotalRevenue(): number {
-    return this.transactions
-      .filter(t => t.status === 'COMPLETED')
-      .reduce((sum, t) => sum + t.amount, 0);
-  }
-
-  getPendingAmount(): number {
-    return this.transactions
-      .filter(t => t.status === 'PENDING')
-      .reduce((sum, t) => sum + t.amount, 0);
-  }
-
-  openAddPaymentMethod(): void {
-    // In a real app, this would open a dialog to add a payment method
-    this.snackBar.open('Add payment method functionality will be implemented', 'Close', { duration: 3000 });
-  }
-
-  editPaymentMethod(method: PaymentMethod): void {
-    // In a real app, this would open a dialog to edit a payment method
-    console.log('Edit payment method:', method);
-  }
-
-  deletePaymentMethod(method: PaymentMethod): void {
-    if (confirm(`Are you sure you want to delete ${method.name}?`)) {
-      // In a real app, this would delete the payment method from the API
-      this.paymentMethods = this.paymentMethods.filter(m => m.id !== method.id);
-      this.snackBar.open('Payment method deleted successfully', 'Close', { duration: 3000 });
-    }
-  }
-
-  setDefaultPaymentMethod(method: PaymentMethod): void {
-    // In a real app, this would update the default payment method via the API
-    this.paymentMethods.forEach(m => {
-      m.isDefault = m.id === method.id;
+  loadPayments(): void {
+    this.paymentService.getAllPayments().subscribe((payments: Payment[]) => {
+      this.dataSource.data = payments;
     });
-    this.snackBar.open(`${method.name} set as default payment method`, 'Close', { duration: 3000 });
   }
 
-  viewTransactionDetails(transaction: Transaction): void {
-    // In a real app, this would open a dialog with transaction details
-    console.log('View transaction details:', transaction);
+  loadPaymentStats(): void {
+    this.paymentService.getPaymentStats().subscribe((stats: { totalPayments: number; totalAmount: number; completedPayments: number; pendingPayments: number; failedPayments: number; refundedPayments: number; paymentsByMethod: {}; }) => {
+      this.paymentStats = stats;
+    });
   }
 
-  downloadReceipt(transaction: Transaction): void {
-    // In a real app, this would download a receipt for the transaction
-    this.snackBar.open(`Receipt for transaction ${transaction.id} downloaded`, 'Close', { duration: 3000 });
-  }
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
 
-  resetBillingForm(): void {
-    this.loadBillingInfo();
-    this.snackBar.open('Form reset to original values', 'Close', { duration: 3000 });
-  }
-
-  onBillingSubmit(): void {
-    if (this.billingForm.valid) {
-      // In a real app, this would save billing information via an API call
-      this.snackBar.open('Billing information saved successfully', 'Close', { duration: 3000 });
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
+  }
+
+  applyFilters(): void {
+    const filters = this.filterForm.value;
+
+    // Apply complex filtering
+    this.dataSource.filterPredicate = (data: Payment, filter: string) => {
+      // Search text filter
+      const searchMatch = !filters.search ||
+        data.paymentId.toString().includes(filters.search) ||
+        data.bookingId.toString().includes(filters.search) ||
+        data.amount.toString().includes(filters.search) ||
+        data.transactionId?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        data.paymentMethod.toLowerCase().includes(filters.search.toLowerCase()) ||
+        data.status.toLowerCase().includes(filters.search.toLowerCase());
+
+      // Status filter
+      const statusMatch = !filters.status || data.status === filters.status;
+
+      // Payment method filter
+      const methodMatch = !filters.paymentMethod || data.paymentMethod === filters.paymentMethod;
+
+      // Date range filter
+      let dateMatch = true;
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        dateMatch = dateMatch && data.paymentDate >= startDate;
+      }
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        dateMatch = dateMatch && data.paymentDate <= endDate;
+      }
+
+      return searchMatch && statusMatch && methodMatch && dateMatch;
+    };
+
+    // Trigger filtering
+    this.dataSource.filter = 'trigger';
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+  resetFilters(): void {
+    this.filterForm.reset({
+      search: '',
+      status: '',
+      paymentMethod: '',
+      startDate: null,
+      endDate: null
+    });
+    this.dataSource.filter = '';
+  }
+
+  openPaymentDialog(bookingId?: number): void {
+    const dialogRef = this.dialog.open(PaymentDialogComponent, {
+      width: '500px',
+      data: {
+        title: 'Create New Payment',
+        bookingId: bookingId
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paymentService.createPayment(result).subscribe({
+          next: () => {
+            this.loadPayments();
+            this.loadPaymentStats();
+          }
+        });
+      }
+    });
+  }
+
+  editPayment(payment: Payment): void {
+    const dialogRef = this.dialog.open(PaymentDialogComponent, {
+      width: '500px',
+      data: {
+        title: 'Edit Payment',
+        payment: payment
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paymentService.updatePayment(payment.paymentId, result).subscribe({
+          next: () => {
+            this.loadPayments();
+            this.loadPaymentStats();
+          }
+        });
+      }
+    });
+  }
+
+  deletePayment(payment: Payment): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Payment',
+        message: `Are you sure you want to delete payment #${payment.paymentId}?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paymentService.deletePayment(payment.paymentId).subscribe({
+          next: () => {
+            this.loadPayments();
+            this.loadPaymentStats();
+          }
+        });
+      }
+    });
+  }
+
+  viewPaymentDetails(payment: Payment): void {
+    // You could implement a detailed view dialog or navigate to a details page
+    console.log('View payment details', payment);
+    // Example: this.router.navigate(['/admin/payments', payment.paymentId]);
+  }
+
+  exportPayments(): void {
+    // Get current filtered data
+    const data = this.dataSource.filteredData;
+
+    // Convert to CSV
+    const headers = ['Payment ID', 'Booking ID', 'Amount', 'Method', 'Transaction ID', 'Status', 'Date'];
+    const csvData = data.map(payment => [
+      payment.paymentId,
+      payment.bookingId,
+      payment.amount,
+      payment.paymentMethod,
+      payment.transactionId || 'N/A',
+      payment.status,
+      this.datePipe.transform(payment.paymentDate, 'medium') || ''
+    ]);
+
+    // Add headers
+    csvData.unshift(headers);
+
+    // Convert to CSV string
+    const csvString = csvData.map(row => row.join(',')).join('\n');
+
+    // Create download
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `payments-export-${new Date().toISOString()}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 }

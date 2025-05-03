@@ -1,17 +1,19 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CompanyPaymentComponent } from '../../components/company-payment/company-payment.component';
-import { MatCardModule } from '@angular/material/card';
+import {AdminCompanyPaymentsComponent} from '../../components/company-payment/company-payment.component';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import {AdminCompaniesComponent} from '../../admin/components/admin-companies/admin-companies.component';
 
 @Component({
   selector: 'app-company-payment-page',
   standalone: true,
   imports: [
     CommonModule,
-    CompanyPaymentComponent,
+    AdminCompanyPaymentsComponent,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
@@ -33,7 +35,7 @@ import { RouterModule } from '@angular/router';
       </div>
 
       <div class="page-content">
-        <app-company-payment></app-company-payment>
+        <app-admin-company-payments></app-admin-company-payments>
       </div>
     </div>
   `,

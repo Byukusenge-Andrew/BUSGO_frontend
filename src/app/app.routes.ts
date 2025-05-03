@@ -19,7 +19,7 @@ import { SupportComponent } from './components/support/support.component';
 import { TicketComponent } from './components/ticket/ticket.component';
 
 import { MyBookingsComponent } from './components/my-bookings/my-bookings.component';
-import { PaymentComponent } from './components/payment/payment.component';
+
 import { CompanyDashboardComponent } from './components/company-dashboard/company-dashboard.component';
 import { CompanyRoutesComponent } from './components/company-routes/company-routes.component';
 import { CompanyProfileComponent } from './components/company-profile/company-profile.component';
@@ -39,6 +39,8 @@ import {ViewLocationsComponent} from './components/company-location/company-loca
 import {AddLocationComponent} from './components/company-location/company-add-location/company-add-location';
 import {CompanyBusesComponent} from './components/company-busses/company-busses.component';
 import {CompanyBusBookingsComponent} from './components/company-booking/company-bus-bookings.component';
+import {UserPaymentComponent} from './components/payment/payment.component';
+import {ResetPasswordComponent} from './components/auth/reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -46,6 +48,7 @@ export const routes: Routes = [
   { path: 'signup', component: SignupComponent },
   { path: 'company/login', component: CompanyLoginComponent },
   {path: 'company/register', component: CompanyRegisterComponent },
+  {path:'forgot-password',component:ResetPasswordComponent},
   { path: 'search', component: BusSearchComponent },
   { path: 'schedule-search', component: ScheduleSearchComponent },
   { path: 'schedule-booking/:id', component: ScheduleBookingComponent,canActivate:[authGuard] },
@@ -87,7 +90,11 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [userGuard] },
   { path: 'settings', component: SettingsComponent,canActivate:[userGuard] },
   { path: 'support', component: SupportComponent,canActivate:[userGuard] },
-  { path: 'payment', component: PaymentComponent ,canActivate:[userGuard]},
+  {
+    path: 'payment/:id', // Add the :id parameter
+    component: UserPaymentComponent,
+    canActivate: [userGuard]
+  },
   { path: 'my-bookings', component: MyBookingsComponent,canActivate:[userGuard] },
   { path: '**', redirectTo: '' }
 ];

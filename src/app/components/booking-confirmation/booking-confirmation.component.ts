@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import { BookingService } from '../../services/bus-booking.service';
 import { Booking } from '../../models/booking.model';
 import {CurrencyPipe, formatDate, NgIf} from '@angular/common';
@@ -18,7 +18,8 @@ import {MatIcon} from '@angular/material/icon';
     MatCardContent,
     MatCard,
     MatDivider,
-    MatIcon
+    MatIcon,
+    RouterLink
   ],
   styleUrls: ['./booking-confirmation.component.scss']
 })

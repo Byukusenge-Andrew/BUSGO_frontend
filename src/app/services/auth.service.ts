@@ -205,4 +205,15 @@ export class AuthService {
   get isAdmin(): boolean {
     return this.userRole.value === 'ADMIN';
   }
+
+  resetPassword(email: any, newPassword: any) {
+    return this.http.post<any>(`${environment.apiUrl}/auth/reset-password`, { email, newPassword })
+      .pipe(
+        tap(response => {
+          console.log('Reset password response:', response);
+        }
+        )
+      )
+
+  }
 }

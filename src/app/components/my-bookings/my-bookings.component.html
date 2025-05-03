@@ -77,12 +77,16 @@
 
         <mat-divider *ngIf="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"></mat-divider> <!-- Show divider if actions are possible -->
 
-        <mat-card-actions *ngIf="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"> <!-- Allow cancel for PENDING too? Adjust if needed -->
+        <mat-card-actions *ngIf="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"> <!-- Condition to show actions -->
           <button mat-stroked-button color="warn" (click)="cancelBooking(booking.id)" [disabled]="cancellingId === booking.id">
             <mat-icon>cancel</mat-icon>
             {{ cancellingId === booking.id ? 'Cancelling...' : 'Cancel Booking' }}
           </button>
-          <!-- Add other actions like 'View Ticket' if needed -->
+          <!-- Pay Now Button -->
+          <button mat-button color="accent" [routerLink]="['/payment', booking.id]">
+            <mat-icon>credit_card</mat-icon>
+            Pay Now
+          </button>
           <button mat-button color="primary" [routerLink]="['/booking-confirmation', booking.id]">
             <mat-icon>receipt_long</mat-icon>
             View Details

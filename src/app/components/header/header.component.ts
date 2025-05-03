@@ -53,9 +53,8 @@ import { AuthService } from '../../services/auth.service';
             <img alt="accountsvg" src="../../../assets/images/account_circle.svg" style="fill: #1a1a1a;color: black">
           </button>
           <mat-menu #userMenu="matMenu">
-            <a mat-menu-item routerLink="/profile" class="dropdown">
-              <span>Profile</span>
-            </a>
+
+            <a mat-menu-item routerLink="/payment" class="dropdown">Payment</a>
             <a mat-menu-item routerLink="/settings" class="dropdown">
               <span>Settings</span>
             </a>

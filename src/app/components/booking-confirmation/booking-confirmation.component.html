@@ -77,6 +77,9 @@
           <button mat-raised-button color="primary" (click)="printTicket()">
             <mat-icon>print</mat-icon> Print Ticket
           </button>
+          <button mat-raised-button color="accent" [routerLink]="['/payment', booking.id]" *ngIf="booking?.status !== 'PAID'">
+            <mat-icon>credit_card</mat-icon> Pay Now
+          </button>
           <button mat-stroked-button routerLink="/my-bookings">
             <mat-icon>list</mat-icon> My Bookings
           </button>
