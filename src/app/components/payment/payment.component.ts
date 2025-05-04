@@ -556,7 +556,7 @@ export class UserPaymentComponent implements OnInit, OnDestroy {
       currency: this.currency || 'RWF',
       paymentMethodId: this.paymentForm.value.paymentMethodId
     };
-
+console.log(paymentRequest)
     this.paymentSub = this.paymentService.createPayment(paymentRequest).subscribe({
       next: (response) => {
         this.processing = false;

@@ -158,36 +158,37 @@ export class PaymentService {
    */
   createPayment(paymentRequest: UserPaymentRequest): Observable<UserPaymentResponse> {
     const backendPayload = {
-      bookingId: parseInt(paymentRequest.bookingId, 10),
+      booking: {
+        bookingId: parseInt(paymentRequest.bookingId)
+      },
       amount: paymentRequest.amount,
       currency: paymentRequest.currency,
       paymentMethod: this.mapPaymentMethodIdToEnum(paymentRequest.paymentMethodId),
       paymentDetails: 'From Angular Frontend',
-      transactionId: 'temp_txn_' + Date.now()
+      transactionId: 'temp_txn_' + Date.now(),
+      status: 'PENDING', // Add default status
+      paymentDate: new Date().toISOString() // Add current timestamp
     };
 
-    // Add check for invalid bookingId after parsing
-    if (isNaN(backendPayload.bookingId)) {
+    // Validate bookingId
+    if (isNaN(backendPayload.booking.bookingId)) {
       const errorMsg = `Invalid Booking ID provided: '${paymentRequest.bookingId}'. Payment cannot be processed.`;
       console.error(errorMsg);
       this.snackBar.open(errorMsg, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-      // Return an observable that immediately emits an error
       return throwError(() => new Error(errorMsg));
     }
 
-    return this.http.post<any>(this.apiUrl, backendPayload)
-      .pipe(
-        map(backendResponse => this.mapToUserPaymentResponse(backendResponse)),
-        tap(response => {
-          this.snackBar.open(`Payment ${response.status.toLowerCase()}. Amount: ${response.amount} ${response.currency}`, 'Close', { duration: 4000 });
-        }),
-        catchError(error => {
-          this.handleError('Failed to process payment', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.post<any>(this.apiUrl, backendPayload).pipe(
+      map(backendResponse => this.mapToUserPaymentResponse(backendResponse)),
+      tap(response => {
+        this.snackBar.open(`Payment ${response.status.toLowerCase()}. Amount: ${response.amount} ${response.currency}`, 'Close', { duration: 4000 });
+      }),
+      catchError(error => {
+        this.handleError('Failed to process payment', error);
+        return throwError(() => error);
+      })
+    );
   }
-
   /**
    * Update a payment
    */

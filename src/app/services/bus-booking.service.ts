@@ -22,39 +22,34 @@ export class BookingService {
    * Converts backend BusBooking structure (any) to frontend Booking model.
    */
   private convertBooking(backendBooking: any): Booking {
-    // Defensive checks for potentially null nested objects
-    const userName = backendBooking.user ? `${backendBooking.user.firstName || ''} ${backendBooking.user.lastName || ''}`.trim() : 'Unknown User';
-    const userEmail = backendBooking.user?.email || 'Unknown Email';
-    const userPhone = backendBooking.user?.phone || 'Unknown Phone'; // Assuming 'phone' exists on backend User
+    const userName = backendBooking.user
+      ? `${backendBooking.user.firstName || ''} ${backendBooking.user.lastName || ''}`.trim()
+      : 'Unknown User';
     const routeName = backendBooking.schedule?.route?.name || 'Unknown Route';
-    const departureTime = backendBooking.schedule?.departureTime || 'Unknown Time';
-    const arrivalTime = backendBooking.schedule?.arrivalTime || 'Unknown Time';
-    const companyId = backendBooking.schedule?.company?.id; // Extract companyId if available
 
     return {
-      id: backendBooking.bookingId?.toString() || '', // Ensure ID is string
+      id: backendBooking.bookingId?.toString() || '',
       customerName: userName,
-      customerEmail: userEmail,
-      customerPhone: userPhone,
+      customerEmail: backendBooking.user?.email || 'Unknown Email',
+      customerPhone: backendBooking.user?.phone || 'Unknown Phone',
       routeName: routeName,
+      from: backendBooking.schedule?.route?.origin || 'Unknown',
+      to: backendBooking.schedule?.route?.destination || 'Unknown',
       date: backendBooking.bookingDate ? new Date(backendBooking.bookingDate) : new Date(),
-      departureTime: departureTime,
-      arrivalTime: arrivalTime,
+      departureTime: backendBooking.schedule?.departureTime || 'Unknown Time',
+      arrivalTime: backendBooking.schedule?.arrivalTime || 'Unknown Time',
       seats: backendBooking.numberOfSeats || 0,
-      seatNumbers: backendBooking.seatNumbers || '',
+      seatNumbers: backendBooking.seatNumbers || undefined,
       amount: backendBooking.totalFare || 0,
       status: backendBooking.status || 'UNKNOWN',
-      paymentStatus: backendBooking.paymentStatus || 'UNKNOWN',
-      paymentMethod: backendBooking.paymentMethod || 'UNKNOWN',
-      transactionId: backendBooking.transactionId || '',
-      companyId: companyId?.toString(), // Store companyId if needed
-      scheduleId: backendBooking.schedule?.id?.toString(), // Store scheduleId if needed
-      // Map additional fields if they exist in backendBooking and are needed in frontend Booking
-      // busName: backendBooking.schedule?.bus?.registrationNumber || 'Unknown Bus', // Example
-      // from: backendBooking.schedule?.route?.origin || 'Unknown', // Example
-      // to: backendBooking.schedule?.route?.destination || 'Unknown', // Example
-      // time: departureTime, // Example: reuse departureTime
-      // totalAmount: backendBooking.totalFare || 0 // Example: reuse totalFare
+      paymentStatus: backendBooking.paymentStatus || undefined,
+      paymentMethod: backendBooking.paymentMethod || undefined,
+      transactionId: backendBooking.transactionId || undefined,
+      companyId: backendBooking.schedule?.company?.id?.toString(),
+      scheduleId: backendBooking.schedule?.id?.toString(),
+      busName: backendBooking.schedule?.bus?.registrationNumber || backendBooking.schedule?.busNumber || 'Unknown Bus',
+      time: backendBooking.schedule?.departureTime || 'Unknown Time',
+      totalAmount: backendBooking.totalFare || 0
     };
   }
   /**
@@ -155,7 +150,7 @@ export class BookingService {
       .pipe(catchError(this.handleError));
   }
   // Other methods remain the same
-  getBookingById(id: string): Observable<Booking> {
+  getBookingById(id: string | null): Observable<Booking> {
     const parsedId = Number(id);
     if (isNaN(parsedId)) {
       console.error('Invalid booking ID for get:', id);

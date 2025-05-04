@@ -7,6 +7,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 
+
 .topunit.mat-select-panel
 {
   background-color: red;
@@ -27,6 +28,18 @@
 
   input{
     padding-left: 5px;
+  }
+  textarea{
+    padding-left: 5px;
+  }
+  .error-snackbar {
+    background-color: #d32f2f; /* Red for errors */
+    color: white;
+  }
+
+  .success-snackbar {
+    background-color: #388e3c; /* Green for success */
+    color: white;
   }
 }
 

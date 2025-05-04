@@ -53,7 +53,7 @@ export const routes: Routes = [
   { path: 'schedule-search', component: ScheduleSearchComponent },
   { path: 'schedule-booking/:id', component: ScheduleBookingComponent,canActivate:[authGuard] },
   { path: 'booking-confirmation/:id', component: BookingConfirmationComponent },
-  { path: 'ticket/:id', component: TicketComponent,canActivate:[ticketGuard] },
+  { path: 'ticket/:id', component: TicketComponent,canActivate:[authGuard] },
   { path: 'admin/login', component: AdminLoginComponent },
 
   // Company-protected routes

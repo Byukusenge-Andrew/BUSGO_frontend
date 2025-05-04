@@ -1,14 +1,82 @@
 .ticket-container {
-  padding: 2rem;
-  max-width: 600px;
+  padding: 1rem;
+  max-width: 700px;
   margin: 0 auto;
 }
-h1 {
-  color: var(--primary-black);
-  margin-bottom: 2rem;
+
+.ticket-toolbar {
+  display: flex;
+  align-items: center;
 }
-.loading {
-  color: var(--text-dark);
-  text-align: center;
+
+.ticket-card {
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 2rem;
+  gap: 1rem;
+}
+
+.loading-placeholder {
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0e0; /* Grey for placeholder */
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.error-container {
+  text-align: center;
+  padding: 1rem;
+  color: #d32f2f; /* Red for errors */
+}
+
+mat-list-item {
+  margin-bottom: 0.5rem;
+}
+
+mat-divider {
+  margin: 0.5rem 0;
+}
+
+mat-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .ticket-container {
+    padding: 0.5rem;
+  }
+
+  .ticket-card {
+    padding: 0.5rem;
+  }
+
+  mat-list-item {
+    font-size: 14px;
+  }
 }
