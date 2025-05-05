@@ -25,6 +25,7 @@ import { PaymentDialogComponent } from './payment-dialog/payment-dialog.componen
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DatePipe } from '@angular/common';
 import {RouterLink} from '@angular/router';
+import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-admin-company-payments',
@@ -359,6 +360,7 @@ export class AdminCompanyPaymentsComponent implements OnInit {
 
   constructor(
     private paymentService: PaymentService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private fb: FormBuilder,
     private datePipe: DatePipe
@@ -388,13 +390,15 @@ export class AdminCompanyPaymentsComponent implements OnInit {
   }
 
   loadPayments(): void {
+
     this.paymentService.getAllPayments().subscribe((payments: Payment[]) => {
       this.dataSource.data = payments;
     });
   }
 
   loadPaymentStats(): void {
-    this.paymentService.getPaymentStats().subscribe((stats: { totalPayments: number; totalAmount: number; completedPayments: number; pendingPayments: number; failedPayments: number; refundedPayments: number; paymentsByMethod: {}; }) => {
+    const companyId = this.authService.getCurrentUserId()
+    this.paymentService.getPaymentStats(companyId).subscribe((stats: { totalPayments: number; totalAmount: number; completedPayments: number; pendingPayments: number; failedPayments: number; refundedPayments: number; paymentsByMethod: {}; }) => {
       this.paymentStats = stats;
     });
   }

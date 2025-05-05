@@ -47,7 +47,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>City</mat-label>
+              <mat-label>City/District</mat-label>
               <input matInput formControlName="city" required>
               <mat-error *ngIf="locationForm.get('city')?.hasError('required')">
                 City is required
@@ -223,7 +223,7 @@ export class AddLocationComponent {
       state: formValue.state,
       country: formValue.country,
       locationType: formValue.locationType,
-      address: (formValue.street || formValue.postalCode || formValue.latitude || formValue.longitude) ? {
+      location: (formValue.street || formValue.postalCode || formValue.latitude || formValue.longitude) ? {
         street: formValue.street || undefined,
         postalCode: formValue.postalCode || undefined,
         latitude: formValue.latitude || undefined,

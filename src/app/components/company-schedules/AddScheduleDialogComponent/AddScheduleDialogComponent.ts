@@ -74,7 +74,8 @@ import { BusService } from '../../../services/bus.service';
         <div class="form-row">
           <mat-form-field appearance="outline">
             <mat-label>Departure Date</mat-label>
-            <input matInput [matDatepicker]="depDatePicker" formControlName="departureDate" required>
+            <input matInput [matDatepicker]="depDatePicker" formControlName="departureDate" required
+                   (dateChange)="updateArrivalTime()">
             <mat-datepicker-toggle matSuffix [for]="depDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #depDatePicker></mat-datepicker>
             <mat-error *ngIf="scheduleForm.get('departureDate')?.hasError('required')">
@@ -84,7 +85,8 @@ import { BusService } from '../../../services/bus.service';
 
           <mat-form-field appearance="outline">
             <mat-label>Departure Time</mat-label>
-            <input matInput type="time" formControlName="departureTime" required>
+            <input matInput type="time" formControlName="departureTime" required
+                   (change)="updateArrivalTime()">
             <mat-error *ngIf="scheduleForm.get('departureTime')?.hasError('required')">
               Departure time is required
             </mat-error>
@@ -93,21 +95,13 @@ import { BusService } from '../../../services/bus.service';
 
         <div class="form-row">
           <mat-form-field appearance="outline">
-            <mat-label>Arrival Date</mat-label>
-            <input matInput [matDatepicker]="arrDatePicker" formControlName="arrivalDate" required>
-            <mat-datepicker-toggle matSuffix [for]="arrDatePicker"></mat-datepicker-toggle>
-            <mat-datepicker #arrDatePicker></mat-datepicker>
-            <mat-error *ngIf="scheduleForm.get('arrivalDate')?.hasError('required')">
-              Arrival date is required
-            </mat-error>
+            <mat-label>Estimated Arrival Date</mat-label>
+            <input matInput [value]="calculatedArrivalDate | date:'yyyy-MM-dd'" readonly>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Arrival Time</mat-label>
-            <input matInput type="time" formControlName="arrivalTime" required>
-            <mat-error *ngIf="scheduleForm.get('arrivalTime')?.hasError('required')">
-              Arrival time is required
-            </mat-error>
+            <mat-label>Estimated Arrival Time</mat-label>
+            <input matInput [value]="calculatedArrivalTime" readonly>
           </mat-form-field>
         </div>
 
@@ -136,7 +130,7 @@ import { BusService } from '../../../services/bus.service';
 
         <mat-form-field appearance="outline">
           <mat-label>Bus Type</mat-label>
-          <input matInput formControlName="busType">
+          <input matInput formControlName="busType" readonly>
         </mat-form-field>
 
         <div class="form-row">
@@ -159,7 +153,7 @@ import { BusService } from '../../../services/bus.service';
     </mat-dialog-content>
     <mat-dialog-actions>
       <button mat-button (click)="dialogRef.close()">Cancel</button>
-      <button mat-raised-button color="primary" [disabled]="scheduleForm.invalid || isSubmitting" (click)="submit()">
+      <button mat-raised-button color="primary" [disabled]="scheduleForm.invalid || isSubmitting || !calculatedArrivalDate" (click)="submit()">
         Add Schedule
       </button>
     </mat-dialog-actions>
@@ -193,6 +187,9 @@ export class AddScheduleDialogComponent implements OnInit {
   locations: BusLocation[] = [];
   buses: any[] = [];
   isSubmitting = false;
+  calculatedArrivalDate: Date | null = null;
+  calculatedArrivalTime: string = '';
+  private estimatedDuration: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -210,8 +207,6 @@ export class AddScheduleDialogComponent implements OnInit {
       destinationLocationId: ['', Validators.required],
       departureDate: ['', Validators.required],
       departureTime: ['', Validators.required],
-      arrivalDate: ['', Validators.required],
-      arrivalTime: ['', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
       busId: ['', Validators.required],
       busType: ['', Validators.required],
@@ -269,68 +264,44 @@ export class AddScheduleDialogComponent implements OnInit {
   onRouteChange(routeId: string): void {
     const selectedRoute = this.routes.find(route => route.id === routeId);
     if (selectedRoute) {
-      // Set price from route
+      this.estimatedDuration = selectedRoute.estimatedDuration || 0;
       this.scheduleForm.patchValue({
         price: selectedRoute.basePrice || 0
       });
 
-      // Try to set source and destination locations if they match the route
       if (selectedRoute.origin && selectedRoute.destination) {
-        // First try exact match by name
         let sourceLocation = this.locations.find(
           loc => loc.locationName.toLowerCase() === selectedRoute.origin.toLowerCase()
+        ) || this.locations.find(
+          loc => loc.city.toLowerCase() === selectedRoute.origin.toLowerCase()
+        ) || this.locations.find(
+          loc => loc.locationName.toLowerCase().includes(selectedRoute.origin.toLowerCase()) ||
+            selectedRoute.origin.toLowerCase().includes(loc.city.toLowerCase())
         );
 
         let destLocation = this.locations.find(
           loc => loc.locationName.toLowerCase() === selectedRoute.destination.toLowerCase()
+        ) || this.locations.find(
+          loc => loc.city.toLowerCase() === selectedRoute.destination.toLowerCase()
+        ) || this.locations.find(
+          loc => loc.locationName.toLowerCase().includes(selectedRoute.destination.toLowerCase()) ||
+            selectedRoute.destination.toLowerCase().includes(loc.city.toLowerCase())
         );
 
-        // If not found, try matching by city
-        if (!sourceLocation) {
-          sourceLocation = this.locations.find(
-            loc => loc.city.toLowerCase() === selectedRoute.origin.toLowerCase()
-          );
-        }
-
-        if (!destLocation) {
-          destLocation = this.locations.find(
-            loc => loc.city.toLowerCase() === selectedRoute.destination.toLowerCase()
-          );
-        }
-
-        // If still not found, try partial matching
-        if (!sourceLocation) {
-          sourceLocation = this.locations.find(
-            loc => loc.locationName.toLowerCase().includes(selectedRoute.origin.toLowerCase()) ||
-              selectedRoute.origin.toLowerCase().includes(loc.city.toLowerCase())
-          );
-        }
-
-        if (!destLocation) {
-          destLocation = this.locations.find(
-            loc => loc.locationName.toLowerCase().includes(selectedRoute.destination.toLowerCase()) ||
-              selectedRoute.destination.toLowerCase().includes(loc.city.toLowerCase())
-          );
-        }
-
-        // Update form with found locations
         if (sourceLocation) {
           this.scheduleForm.patchValue({ sourceLocationId: sourceLocation.id });
+        } else {
+          console.warn(`Could not find matching source location for route origin: ${selectedRoute.origin}`);
         }
 
         if (destLocation) {
           this.scheduleForm.patchValue({ destinationLocationId: destLocation.id });
-        }
-
-        // Log if locations couldn't be matched
-        if (!sourceLocation) {
-          console.warn(`Could not find matching source location for route origin: ${selectedRoute.origin}`);
-        }
-
-        if (!destLocation) {
+        } else {
           console.warn(`Could not find matching destination location for route destination: ${selectedRoute.destination}`);
         }
       }
+
+      this.updateArrivalTime();
     }
   }
 
@@ -340,15 +311,32 @@ export class AddScheduleDialogComponent implements OnInit {
       this.scheduleForm.patchValue({
         busType: selectedBus.busType || '',
         totalSeats: selectedBus.capacity || 0,
-        availableSeats: selectedBus.capacity || 0, // Initially all seats are available
+        availableSeats: selectedBus.capacity || 0,
         busNumber: selectedBus.registrationNumber || ''
       });
     }
   }
 
+  updateArrivalTime(): void {
+    const departureDate = this.scheduleForm.get('departureDate')?.value;
+    const departureTime = this.scheduleForm.get('departureTime')?.value;
+
+    if (departureDate && departureTime && this.estimatedDuration > 0) {
+      const departureDateTime = this.combineDateAndTime(departureDate, departureTime);
+      const arrivalDateTime = new Date(departureDateTime.getTime() + this.estimatedDuration * 60 * 1000);
+
+      const hours = arrivalDateTime.getHours().toString().padStart(2, '0');
+      const minutes = arrivalDateTime.getMinutes().toString().padStart(2, '0');
+      this.calculatedArrivalTime = `${hours}:${minutes}`;
+      this.calculatedArrivalDate = arrivalDateTime;
+    } else {
+      this.calculatedArrivalTime = '';
+      this.calculatedArrivalDate = null;
+    }
+  }
+
   submit(): void {
-    if (this.scheduleForm.invalid) {
-      // Show which fields are invalid for debugging
+    if (this.scheduleForm.invalid || !this.calculatedArrivalDate) {
       const invalidControls: string[] = [];
       Object.keys(this.scheduleForm.controls).forEach(key => {
         const control = this.scheduleForm.get(key);
@@ -368,16 +356,6 @@ export class AddScheduleDialogComponent implements OnInit {
       return;
     }
 
-    // Combine date and time for departure and arrival
-    const departureDate = this.scheduleForm.value.departureDate;
-    const departureTime = this.scheduleForm.value.departureTime;
-    const arrivalDate = this.scheduleForm.value.arrivalDate;
-    const arrivalTime = this.scheduleForm.value.arrivalTime;
-
-    // Create Date objects with combined date and time
-    const departureDateTime = this.combineDateAndTime(departureDate, departureTime);
-    const arrivalDateTime = this.combineDateAndTime(arrivalDate, arrivalTime);
-
     const sourceLocation = this.locations.find(loc => loc.id === Number(this.scheduleForm.value.sourceLocationId));
     const destinationLocation = this.locations.find(loc => loc.id === Number(this.scheduleForm.value.destinationLocationId));
     const selectedBus = this.buses.find(bus => bus.id === this.scheduleForm.value.busId);
@@ -388,13 +366,18 @@ export class AddScheduleDialogComponent implements OnInit {
       return;
     }
 
+    const departureDateTime = this.combineDateAndTime(
+      this.scheduleForm.value.departureDate,
+      this.scheduleForm.value.departureTime
+    );
+
     const scheduleData: Partial<Schedule> = {
       companyId: Number(companyId),
       routeId: Number(this.scheduleForm.value.routeId),
       sourceLocation: sourceLocation,
       destinationLocation: destinationLocation,
       departureTime: departureDateTime,
-      arrivalTime: arrivalDateTime,
+      arrivalTime: this.calculatedArrivalDate,
       price: this.scheduleForm.value.price,
       busType: this.scheduleForm.value.busType,
       totalSeats: selectedBus?.capacity || 0,
@@ -427,19 +410,18 @@ export class AddScheduleDialogComponent implements OnInit {
     });
   }
 
-  // Helper method to combine date and time
   private combineDateAndTime(date: Date, timeString: string): Date {
     if (!date || !timeString) {
       return new Date();
     }
 
+    // Create a new Date object from the input date to avoid modifying it
     const result = new Date(date);
     const timeParts = timeString.split(':');
 
     if (timeParts.length >= 2) {
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
-
       result.setHours(hours, minutes, 0, 0);
     }
 

@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { BusLocation } from './bus-location.service';
-import {Bus} from './bus.service';
 
 export interface Schedule {
   id: number;
@@ -30,6 +29,17 @@ export class ScheduleService {
   private apiUrl = `${environment.apiUrl}/schedules`;
 
   constructor(private http: HttpClient) {}
+
+  private formatDate(date: Date): string {
+    // Format date as yyyy-MM-dd'T'HH:mm:ss (local time)
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
 
   private convertSchedule(schedule: any): Schedule {
     return {
@@ -71,8 +81,8 @@ export class ScheduleService {
       route: schedule.routeId ? { routeId: schedule.routeId } : null,
       sourceLocation: schedule.sourceLocation?.id ? { locationId: schedule.sourceLocation.id } : null,
       destinationLocation: schedule.destinationLocation?.id ? { locationId: schedule.destinationLocation.id } : null,
-      departureTime: schedule.departureTime ? schedule.departureTime.toISOString() : null,
-      arrivalTime: schedule.arrivalTime ? schedule.arrivalTime.toISOString() : null,
+      departureTime: schedule.departureTime ? this.formatDate(schedule.departureTime) : null,
+      arrivalTime: schedule.arrivalTime ? this.formatDate(schedule.arrivalTime) : null,
       fare: schedule.price,
       busType: schedule.busType,
       totalSeats: schedule.totalSeats,
@@ -94,6 +104,7 @@ export class ScheduleService {
 
   createSchedule(schedule: Partial<Schedule>): Observable<Schedule> {
     const backendSchedule = this.convertToBackendFormat(schedule);
+    console.log('Backend schedule:', JSON.stringify(backendSchedule));
     return this.http.post<any>(this.apiUrl, backendSchedule)
       .pipe(map(schedule => this.convertSchedule(schedule)));
   }
@@ -108,7 +119,6 @@ export class ScheduleService {
     return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`)
       .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
   }
-
 
   deleteSchedule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

@@ -1,4 +1,4 @@
-<div class="company-add-bus-container">
+<div class="container">
   <mat-card>
     <mat-card-header>
       <mat-card-title>Add New Bus</mat-card-title>
@@ -6,7 +6,7 @@
     <mat-card-content>
       <form [formGroup]="busForm" (ngSubmit)="onSubmit()" *ngIf="busForm">
         <div class="form-row">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="wide-input">
             <mat-label>Registration Number</mat-label>
             <input matInput formControlName="registrationNumber">
             <mat-error *ngIf="busForm.get('registrationNumber')?.hasError('required')">
@@ -14,7 +14,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="wide-input">
             <mat-label>Bus Model</mat-label>
             <input matInput formControlName="model">
             <mat-error *ngIf="busForm.get('model')?.hasError('required')">
@@ -24,7 +24,7 @@
         </div>
 
         <div class="form-row">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="wide-input">
             <mat-label>Bus Type</mat-label>
             <mat-select formControlName="busType">
               <mat-option *ngFor="let type of busTypes" [value]="type.value">{{ type.viewValue }}</mat-option>
@@ -34,7 +34,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="wide-input">
             <mat-label>Capacity</mat-label>
             <input matInput type="number" min="1" formControlName="capacity">
             <mat-error *ngIf="busForm.get('capacity')?.hasError('required') || busForm.get('capacity')?.hasError('min')">
@@ -43,7 +43,7 @@
           </mat-form-field>
         </div>
 
-        <div class="form-section">
+        <div class="form-section full-width">
           <h3>Amenities</h3>
           <div class="amenities-grid">
             <mat-checkbox id="hasAC" formControlName="hasAC">Air Conditioning</mat-checkbox>
@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row full-width">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Additional Notes</mat-label>
             <textarea matInput formControlName="notes" rows="3"></textarea>

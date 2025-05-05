@@ -11,7 +11,8 @@ export interface BusLocation {
   state: string;
   country: string;
   locationType: string;
-  address?: LocationAddress;
+  location?: LocationAddress;
+
 }
 
 export interface LocationAddress {
@@ -38,7 +39,7 @@ export class BusLocationService {
       state: location.state,
       country: location.country,
       locationType: location.locationType,
-      address: location.address ? {
+      location: location.address ? {
         id: location.address.id,
         street: location.address.street,
         postalCode: location.address.postalCode,
@@ -65,11 +66,11 @@ export class BusLocationService {
       state: location.state,
       country: location.country,
       locationType: location.locationType,
-      address: location.address ? {
-        street: location.address.street,
-        postalCode: location.address.postalCode,
-        latitude: location.address.latitude,
-        longitude: location.address.longitude
+      location: location.location ? {
+        street: location.location.street,
+        postalCode: location.location.postalCode,
+        latitude: location.location.latitude,
+        longitude: location.location.longitude
       } : null
     };
     return this.http.post<any>(this.apiUrl, backendLocation)
@@ -83,11 +84,11 @@ export class BusLocationService {
       state: location.state,
       country: location.country,
       locationType: location.locationType,
-      address: location.address ? {
-        street: location.address.street,
-        postalCode: location.address.postalCode,
-        latitude: location.address.latitude,
-        longitude: location.address.longitude
+      location: location.location ? {
+        street: location.location.street,
+        postalCode: location.location.postalCode,
+        latitude: location.location.latitude,
+        longitude: location.location.longitude
       } : null
     };
     return this.http.put<any>(`${this.apiUrl}/${id}`, backendLocation)

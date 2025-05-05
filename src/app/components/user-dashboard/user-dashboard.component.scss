@@ -61,7 +61,7 @@
 
   i {
     font-size: 1.5rem;
-    color: #4299e1;
+    color: var(--primary-red);
   }
 
   .stat-info {
@@ -108,7 +108,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #4299e1;
+  background: var(--primary-red);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -116,7 +116,8 @@
   transition: background 0.3s ease;
 
   &:hover {
-    background: #3182ce;
+    background: #bc8989;
+
   }
 }
 
@@ -197,7 +198,7 @@
 
     &.cancel-booking {
       background: #fff5f5;
-      color: #e53e3e;
+      color: #ff0000;
       border: none;
 
       &:hover {
@@ -229,7 +230,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: #4299e1;
+    background: var(--primary-red);
     color: white;
     border-radius: 8px;
     text-decoration: none;
@@ -237,7 +238,7 @@
     transition: background 0.3s ease;
 
     &:hover {
-      background: #3182ce;
+      background: #bc8989;
     }
   }
 }
@@ -282,7 +283,7 @@
 
   &.booking {
     background: #ebf8ff;
-    color: #2b6cb0;
+    color:var(--primary-red);
   }
 
   &.cancellation {
@@ -355,7 +356,7 @@
 
   i {
     font-size: 1.5rem;
-    color: #4299e1;
+    color: var(--primary-red);
   }
 
   span {

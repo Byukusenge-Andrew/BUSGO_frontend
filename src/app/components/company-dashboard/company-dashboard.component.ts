@@ -361,7 +361,7 @@ interface RecentBooking {
     }
 
     .revenue .stat-icon mat-icon {
-      color: #4caf50;
+      color: var(--primary-red);
     }
 
     .dashboard-actions {

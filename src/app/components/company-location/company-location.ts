@@ -80,8 +80,8 @@ import { BusLocationService, BusLocation } from '../../services/bus-location.ser
               <ng-container matColumnDef="address">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Address</th>
                 <td mat-cell *matCellDef="let location">
-                  {{ location.address?.street || 'N/A' }}
-                  <span *ngIf="location.address?.postalCode"> ({{ location.address.postalCode }})</span>
+                  {{ location.location?.street || 'N/A' }}
+                  <span *ngIf="location.location?.postalCode"> ({{ location.location.postalCode }})</span>
                 </td>
               </ng-container>
 
@@ -203,7 +203,7 @@ export class ViewLocationsComponent implements OnInit {
     this.filteredLocations = this.locations.filter(location =>
       location.locationName.toLowerCase().includes(filterValue) ||
       location.city.toLowerCase().includes(filterValue) ||
-      (location.address?.street?.toLowerCase().includes(filterValue) ?? false)
+      (location.location?.street?.toLowerCase().includes(filterValue) ?? false)
     );
     this.table.renderRows();
     if (this.paginator) {

@@ -112,7 +112,7 @@ export class CompanyAddBusComponent implements OnInit {
       status: formValue.status || 'ACTIVE'
     };
  console.log("current company Id "+  this.authservice.getCurrentUserId())
-    // In a real app, this would send data to a service
+
     console.log('Submitting bus data:', busData);
 
     this.busService.addBus(busData).subscribe({

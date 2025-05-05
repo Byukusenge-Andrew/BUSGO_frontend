@@ -225,10 +225,11 @@ export class PaymentService {
   /**
    * Get payment statistics
    */
-  getPaymentStats(companyId?: number): Observable<PaymentStats> {
+  getPaymentStats(companyId?: string | null): Observable<PaymentStats> {
     let url = `${environment.apiUrl}/payment-stats`;
+    const companyidNumber = Number(companyId);
     if (companyId) {
-      url = `${environment.apiUrl}/companies/${companyId}/payment-stats`;
+      url = `${environment.apiUrl}/companies/${companyidNumber}/payment-stats`;
     }
 
     return this.http.get<PaymentStats>(url)

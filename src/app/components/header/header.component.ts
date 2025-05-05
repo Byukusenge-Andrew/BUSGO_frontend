@@ -45,7 +45,7 @@ import { AuthService } from '../../services/auth.service';
 
         <!-- Regular User Navigation -->
         <div class="nav-links" *ngIf="isLoggedIn && userType === 'user'">
-          <a mat-button routerLink="/search">Find Buses</a>
+<!--          <a mat-button routerLink="/search">Find Buses</a>-->
           <a mat-button routerLink="/my-bookings">My Bookings</a>
           <a mat-button routerLink="/schedule-search">Search</a>
           <a mat-button routerLink="/dashboard">Dashboard</a>
