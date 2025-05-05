@@ -41,14 +41,20 @@ import {CompanyBusesComponent} from './components/company-busses/company-busses.
 import {CompanyBusBookingsComponent} from './components/company-booking/company-bus-bookings.component';
 import {UserPaymentComponent} from './components/payment/payment.component';
 import {ResetPasswordComponent} from './components/auth/reset-password/reset-password.component';
+import {RequestPasswordResetComponent} from './components/auth/request-password-reset/request-password-reset.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  {path:'forgot-password',component:RequestPasswordResetComponent},
+
+  {
+    path:'reset-password',component:ResetPasswordComponent
+  },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'company/login', component: CompanyLoginComponent },
   {path: 'company/register', component: CompanyRegisterComponent },
-  {path:'forgot-password',component:ResetPasswordComponent},
+
   { path: 'search', component: BusSearchComponent },
   { path: 'schedule-search', component: ScheduleSearchComponent },
   { path: 'schedule-booking/:id', component: ScheduleBookingComponent,canActivate:[authGuard] },

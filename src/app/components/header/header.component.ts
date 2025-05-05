@@ -37,7 +37,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <div class="nav-links" *ngIf="!isLoggedIn">
-          <a mat-button routerLink="/search">Find Buses</a>
+<!--          <a mat-button routerLink="/search">Find Buses</a>-->
+          <a mat-button routerLink="/company/login">CompanyLogin</a>
           <a mat-button routerLink="/routes">Routes</a>
           <a mat-button routerLink="/login">Login</a>
           <a mat-raised-button color="accent" routerLink="/signup">Sign Up</a>

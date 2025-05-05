@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
@@ -6,16 +5,6 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Payment, PaymentStats, CreatePaymentDto, UpdatePaymentDto, PaymentStatus, PaymentMethod, UserPaymentMethod, UserPaymentRequest, UserPaymentResponse } from '../models/payment.model';
-
-
-// export interface PaymentMethod {
-//   id: string;
-//   type: 'card' | 'mobile_money' | 'bank_transfer';
-//   name: string;
-//   details: string;
-//   isDefault: boolean;
-// }
-
 
 @Injectable({
   providedIn: 'root'
@@ -29,17 +18,19 @@ export class PaymentService {
   ) {}
 
   /**
-   * Helper method to convert backend payment to frontend format
+   * Convert backend payment to frontend Payment model
    */
   private convertPayment(payment: any): Payment {
+    const bookingId = payment.booking?.bookingId || payment.booking?.id || payment.bookingId;
     return {
-      ...payment,
-      paymentId: payment.paymentId,
-      bookingId: payment.booking?.id || payment.bookingId,
+      paymentId: payment.paymentId || payment.id || 0,
+      bookingId: bookingId || 0,
       paymentDate: payment.paymentDate ? new Date(payment.paymentDate) : new Date(),
-      amount: Number(payment.amount),
-      paymentMethod: payment.paymentMethod as PaymentMethod,
-      status: payment.status as PaymentStatus
+      amount: Number(payment.amount) || 0,
+      paymentMethod: (payment.paymentMethod || 'CREDIT_CARD') as PaymentMethod,
+      status: (payment.status || 'PENDING') as PaymentStatus,
+      transactionId: payment.transactionId || '',
+      paymentDetails: payment.paymentDetails || ''
     };
   }
 
@@ -49,17 +40,16 @@ export class PaymentService {
   getAllPayments(filter?: { status?: PaymentStatus, method?: PaymentMethod }): Observable<Payment[]> {
     let params = new HttpParams();
     if (filter) {
-      if (filter.status) {
-        params = params.set('status', filter.status);
-      }
-      if (filter.method) {
-        params = params.set('method', filter.method);
-      }
+      if (filter.status) params = params.set('status', filter.status);
+      if (filter.method) params = params.set('method', filter.method);
     }
 
-    return this.http.get<any[]>(`${this.apiUrl}`, { params })
+    return this.http.get<any>(`${this.apiUrl}`, { params })
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         catchError(error => {
           this.handleError('Failed to fetch payments', error);
           return of([]);
@@ -73,7 +63,7 @@ export class PaymentService {
   getPaymentById(paymentId: number): Observable<Payment> {
     return this.http.get<any>(`${this.apiUrl}/${paymentId}`)
       .pipe(
-        map(payment => this.convertPayment(payment)),
+        map(response => this.convertPayment(response.data || response)),
         catchError(error => {
           this.handleError(`Failed to fetch payment with ID ${paymentId}`, error);
           return throwError(() => error);
@@ -85,9 +75,12 @@ export class PaymentService {
    * Get payments by booking ID
    */
   getPaymentsByBooking(bookingId: number): Observable<Payment[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/booking/${bookingId}`)
+    return this.http.get<any>(`${this.apiUrl}/booking/${bookingId}`)
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         catchError(error => {
           this.handleError(`Failed to fetch payments for booking ${bookingId}`, error);
           return of([]);
@@ -99,9 +92,12 @@ export class PaymentService {
    * Get payments by status
    */
   getPaymentsByStatus(status: PaymentStatus): Observable<Payment[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/status/${status}`)
+    return this.http.get<any>(`${this.apiUrl}/status/${status}`)
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         catchError(error => {
           this.handleError(`Failed to fetch ${status} payments`, error);
           return of([]);
@@ -113,9 +109,12 @@ export class PaymentService {
    * Get payments by method
    */
   getPaymentsByMethod(method: PaymentMethod): Observable<Payment[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/method/${method}`)
+    return this.http.get<any>(`${this.apiUrl}/method/${method}`)
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         catchError(error => {
           this.handleError(`Failed to fetch ${method} payments`, error);
           return of([]);
@@ -129,7 +128,7 @@ export class PaymentService {
   getPaymentByTransactionId(transactionId: string): Observable<Payment> {
     return this.http.get<any>(`${this.apiUrl}/transaction/${transactionId}`)
       .pipe(
-        map(payment => this.convertPayment(payment)),
+        map(response => this.convertPayment(response.data || response)),
         catchError(error => {
           this.handleError(`Failed to fetch payment with transaction ID ${transactionId}`, error);
           return throwError(() => error);
@@ -138,17 +137,20 @@ export class PaymentService {
   }
 
   /**
-   * Get payments associated with a specific company.
+   * Get payments by company
    */
   getPaymentsByCompany(companyId: number): Observable<Payment[]> {
     const companyPaymentsUrl = `${environment.apiUrl}/companies/${companyId}/payments`;
-    return this.http.get<any[]>(companyPaymentsUrl)
+    return this.http.get<any>(companyPaymentsUrl)
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         tap(payments => console.log(`Fetched ${payments.length} payments for company ${companyId}`)),
         catchError(error => {
           this.handleError(`Failed to fetch payments for company ${companyId}`, error);
-          return of([]); // Return empty array on error to avoid breaking the component
+          return of([]);
         })
       );
   }
@@ -158,19 +160,14 @@ export class PaymentService {
    */
   createPayment(paymentRequest: UserPaymentRequest): Observable<UserPaymentResponse> {
     const backendPayload = {
-      booking: {
-        bookingId: parseInt(paymentRequest.bookingId)
-      },
+      booking: { bookingId: parseInt(paymentRequest.bookingId) }, // Match backend's expected structure
       amount: paymentRequest.amount,
-      currency: paymentRequest.currency,
       paymentMethod: this.mapPaymentMethodIdToEnum(paymentRequest.paymentMethodId),
       paymentDetails: 'From Angular Frontend',
       transactionId: 'temp_txn_' + Date.now(),
-      status: 'PENDING', // Add default status
-      paymentDate: new Date().toISOString() // Add current timestamp
+      status: 'PENDING' // Backend will override to COMPLETED
     };
 
-    // Validate bookingId
     if (isNaN(backendPayload.booking.bookingId)) {
       const errorMsg = `Invalid Booking ID provided: '${paymentRequest.bookingId}'. Payment cannot be processed.`;
       console.error(errorMsg);
@@ -179,23 +176,28 @@ export class PaymentService {
     }
 
     return this.http.post<any>(this.apiUrl, backendPayload).pipe(
-      map(backendResponse => this.mapToUserPaymentResponse(backendResponse)),
+      map(response => {
+        console.log('Backend response:', response);
+        return this.mapToUserPaymentResponse(response);
+      }),
       tap(response => {
         this.snackBar.open(`Payment ${response.status.toLowerCase()}. Amount: ${response.amount} ${response.currency}`, 'Close', { duration: 4000 });
       }),
       catchError(error => {
+        console.error('Create payment error:', error);
         this.handleError('Failed to process payment', error);
         return throwError(() => error);
       })
     );
   }
+
   /**
    * Update a payment
    */
   updatePayment(paymentId: number, paymentData: UpdatePaymentDto): Observable<Payment> {
     return this.http.put<any>(`${this.apiUrl}/${paymentId}`, paymentData)
       .pipe(
-        map(payment => this.convertPayment(payment)),
+        map(response => this.convertPayment(response.data || response)),
         tap(payment => {
           this.snackBar.open(`Payment updated successfully`, 'Close', { duration: 3000 });
         }),
@@ -210,8 +212,9 @@ export class PaymentService {
    * Delete a payment
    */
   deletePayment(paymentId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${paymentId}`)
+    return this.http.delete<any>(`${this.apiUrl}/${paymentId}`)
       .pipe(
+        map(response => response.data || null),
         tap(() => {
           this.snackBar.open('Payment deleted successfully', 'Close', { duration: 3000 });
         }),
@@ -227,13 +230,14 @@ export class PaymentService {
    */
   getPaymentStats(companyId?: string | null): Observable<PaymentStats> {
     let url = `${environment.apiUrl}/payment-stats`;
-    const companyidNumber = Number(companyId);
+    const companyIdNumber = Number(companyId);
     if (companyId) {
-      url = `${environment.apiUrl}/companies/${companyidNumber}/payment-stats`;
+      url = `${environment.apiUrl}/companies/${companyIdNumber}/payment-stats`;
     }
 
-    return this.http.get<PaymentStats>(url)
+    return this.http.get<any>(url)
       .pipe(
+        map(response => response.data || response),
         catchError(error => {
           this.handleError('Failed to fetch payment statistics', error);
           return of({
@@ -250,17 +254,39 @@ export class PaymentService {
   }
 
   /**
-   * Helper method to map backend response to UserPaymentResponse
+   * Map backend response to UserPaymentResponse
    */
-  private mapToUserPaymentResponse(backendResponse: any): UserPaymentResponse {
-    const payment = backendResponse as Payment;
+  private mapToUserPaymentResponse(response: any): UserPaymentResponse {
+    // Handle different response formats
+    let payment = response;
+    if (response.data) {
+      payment = response.data; // Wrapped response: { status, message, data }
+    } else if (typeof response === 'string') {
+      // Handle plain text response (e.g., "Payment created successfully.")
+      console.warn('Received plain text response:', response);
+      return {
+        id: '0',
+        status: 'PENDING',
+        transactionId: 'unknown',
+        timestamp: new Date(),
+        amount: 0,
+        currency: 'RWF'
+      };
+    }
+
+    // Ensure payment object has required fields
+    if (!payment || !payment.paymentId) {
+      console.error('Invalid payment response:', payment);
+      throw new Error('Invalid payment response from server');
+    }
+
     return {
       id: payment.paymentId.toString(),
-      status: payment.status,
-      transactionId: payment.transactionId,
-      timestamp: new Date(payment.paymentDate),
-      amount: payment.amount,
-      currency: 'RWF'
+      status: payment.status || 'COMPLETED',
+      transactionId: payment.transactionId || 'unknown',
+      timestamp: payment.paymentDate ? new Date(payment.paymentDate) : new Date(),
+      amount: Number(payment.amount) || 0,
+      currency: payment.currency || 'RWF'
     };
   }
 
@@ -268,17 +294,20 @@ export class PaymentService {
    * Map payment method ID to enum
    */
   private mapPaymentMethodIdToEnum(methodId: string): PaymentMethod {
-    if (methodId === '1') return 'CREDIT_CARD';
-    if (methodId === '2') return 'MOBILE_MONEY';
-    if (methodId === '3') return 'BANK_TRANSFER';
-    return 'CREDIT_CARD';
+    switch (methodId) {
+      case '1': return 'CREDIT_CARD';
+      case '2': return 'MOBILE_MONEY';
+      case '3': return 'BANK_TRANSFER';
+      case '4': return 'CASH';
+      default: return 'CREDIT_CARD';
+    }
   }
 
   /**
    * Handle API errors and display snackbar message
    */
   private handleError(message: string, error: any): void {
-    console.error(error);
+    console.error(`${message}:`, error);
     const userMessage = error.error?.message || error.message || 'Unknown error';
     this.snackBar.open(`${message}: ${userMessage}`, 'Close', {
       duration: 5000,
@@ -287,17 +316,20 @@ export class PaymentService {
   }
 
   /**
-   * Get payments associated with a specific company.
+   * Get company payments
    */
   getCompanyPayments(companyId: string | number): Observable<Payment[]> {
     const companyPaymentsUrl = `${environment.apiUrl}/companies/${companyId}/payments`;
-    return this.http.get<any[]>(companyPaymentsUrl)
+    return this.http.get<any>(companyPaymentsUrl)
       .pipe(
-        map(payments => payments.map(payment => this.convertPayment(payment))),
+        map(response => {
+          const payments = response.data || response;
+          return Array.isArray(payments) ? payments.map(p => this.convertPayment(p)) : [];
+        }),
         tap(payments => console.log(`Fetched ${payments.length} payments for company ${companyId}`)),
         catchError(error => {
           this.handleError(`Failed to fetch payments for company ${companyId}`, error);
-          return of([]); // Return empty array on error to avoid breaking the component
+          return of([]);
         })
       );
   }

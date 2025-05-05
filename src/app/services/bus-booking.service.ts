@@ -94,6 +94,7 @@ export class BookingService {
       );
   }
 
+
   getBookingsByDateRange(startDate: Date, endDate: Date): Observable<Booking[]> {
     const formattedStartDate = this.formatDate(startDate);
     const formattedEndDate = this.formatDate(endDate);

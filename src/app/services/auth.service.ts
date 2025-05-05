@@ -206,14 +206,21 @@ export class AuthService {
     return this.userRole.value === 'ADMIN';
   }
 
-  resetPassword(email: any, newPassword: any) {
-    return this.http.post<any>(`${environment.apiUrl}/auth/reset-password`, { email, newPassword })
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/auth/request-password-reset`, { email })
       .pipe(
         tap(response => {
-          console.log('Reset password response:', response);
-        }
-        )
-      )
+          console.log('Password reset request response:', response);
+        })
+      );
+  }
 
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/auth/reset-password`, { token, newPassword })
+      .pipe(
+        tap(response => {
+          console.log('Password reset response:', response);
+        })
+      );
   }
 }
