@@ -12,7 +12,6 @@ export interface BusLocation {
   country: string;
   locationType: string;
   location?: LocationAddress;
-
 }
 
 export interface LocationAddress {

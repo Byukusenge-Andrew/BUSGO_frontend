@@ -17,13 +17,14 @@ export interface Schedule {
   status: string;
   busType: string;
   companyId: number;
+  companyName: string;
   routeId: number;
   sourceLocation: BusLocation;
   destinationLocation: BusLocation;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ScheduleService {
   private apiUrl = `${environment.apiUrl}/schedules`;
@@ -31,7 +32,6 @@ export class ScheduleService {
   constructor(private http: HttpClient) {}
 
   private formatDate(date: Date): string {
-    // Format date as yyyy-MM-dd'T'HH:mm:ss (local time)
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -42,6 +42,10 @@ export class ScheduleService {
   }
 
   private convertSchedule(schedule: any): Schedule {
+    console.log('Raw schedule response:', JSON.stringify(schedule, null, 2));
+    console.log('Company object:', schedule.company);
+    console.log('Company name:', schedule.company?.companyName);
+
     return {
       id: schedule.scheduleId,
       routeName: schedule.route?.routeName || '',
@@ -53,7 +57,8 @@ export class ScheduleService {
       price: schedule.fare,
       status: schedule.active ? 'SCHEDULED' : 'CANCELLED',
       busType: schedule.busType || '',
-      companyId: schedule.company?.companyId,
+      companyId: schedule.company?.companyId ?? 0,
+      companyName: schedule.company?.companyName ?? 'Unknown', // Use nullish coalescing for safety
       routeId: schedule.route?.routeId,
       sourceLocation: {
         id: schedule.sourceLocation?.locationId,
@@ -61,7 +66,7 @@ export class ScheduleService {
         city: schedule.sourceLocation?.city,
         state: schedule.sourceLocation?.state,
         country: schedule.sourceLocation?.country,
-        locationType: schedule.sourceLocation?.locationType
+        locationType: schedule.sourceLocation?.locationType,
       },
       destinationLocation: {
         id: schedule.destinationLocation?.locationId,
@@ -69,8 +74,8 @@ export class ScheduleService {
         city: schedule.destinationLocation?.city,
         state: schedule.destinationLocation?.state,
         country: schedule.destinationLocation?.country,
-        locationType: schedule.destinationLocation?.locationType
-      }
+        locationType: schedule.destinationLocation?.locationType,
+      },
     };
   }
 
@@ -88,57 +93,67 @@ export class ScheduleService {
       totalSeats: schedule.totalSeats,
       availableSeats: schedule.availableSeats,
       busNumber: schedule.busNumber,
-      active: schedule.status === 'SCHEDULED'
+      active: schedule.status === 'SCHEDULED',
     };
   }
 
   getAllSchedules(): Observable<Schedule[]> {
-    return this.http.get<any[]>(this.apiUrl)
-      .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
+    return this.http.get<any[]>(this.apiUrl).pipe(
+      map((schedules) => {
+        console.log('Schedules received:', schedules.length);
+        return schedules.map((schedule) => this.convertSchedule(schedule));
+      })
+    );
   }
 
   getScheduleById(id: number): Observable<Schedule> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`)
-      .pipe(map(schedule => this.convertSchedule(schedule)));
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map((schedule) => this.convertSchedule(schedule))
+    );
   }
 
   createSchedule(schedule: Partial<Schedule>): Observable<Schedule> {
     const backendSchedule = this.convertToBackendFormat(schedule);
     console.log('Backend schedule:', JSON.stringify(backendSchedule));
-    return this.http.post<any>(this.apiUrl, backendSchedule)
-      .pipe(map(schedule => this.convertSchedule(schedule)));
+    return this.http.post<any>(this.apiUrl, backendSchedule).pipe(
+      map((schedule) => this.convertSchedule(schedule))
+    );
   }
 
   updateSchedule(id: number, schedule: Partial<Schedule>): Observable<Schedule> {
     const backendSchedule = this.convertToBackendFormat(schedule);
-    return this.http.put<any>(`${this.apiUrl}/${id}`, backendSchedule)
-      .pipe(map(schedule => this.convertSchedule(schedule)));
+    return this.http.put<any>(`${this.apiUrl}/${id}`, backendSchedule).pipe(
+      map((schedule) => this.convertSchedule(schedule))
+    );
   }
 
   getCompanySchedule(companyId: string): Observable<Schedule[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`)
-      .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
+    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`).pipe(
+      map((schedules) => schedules.map((schedule) => this.convertSchedule(schedule)))
+    );
   }
 
   deleteSchedule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  searchSchedules(sourceId: number, destId: number, departureDate: Date): Observable<Schedule[]> {
+  searchSchedules(sourceId: number, destId: number, departureDate: string): Observable<Schedule[]> {
     const params = new HttpParams()
       .set('sourceId', sourceId.toString())
       .set('destId', destId.toString())
-      .set('departureDate', departureDate.toISOString().split('T')[0]);
-    return this.http.get<any[]>(`${this.apiUrl}/search`, { params })
-      .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
+      .set('departureDate', departureDate);
+    return this.http.get<any[]>(`${this.apiUrl}/search`, { params }).pipe(
+      map((schedules) => schedules.map((schedule) => this.convertSchedule(schedule)))
+    );
   }
 
-  searchSchedulesByCity(sourceCity: string, destCity: string, departureDate: Date): Observable<Schedule[]> {
+  searchSchedulesByCity(sourceCity: string, destCity: string, departureDate: string): Observable<Schedule[]> {
     const params = new HttpParams()
       .set('sourceCity', sourceCity)
       .set('destCity', destCity)
-      .set('departureDate', departureDate.toISOString().split('T')[0]);
-    return this.http.get<any[]>(`${this.apiUrl}/search-by-city`, { params })
-      .pipe(map(schedules => schedules.map(schedule => this.convertSchedule(schedule))));
+      .set('departureDate', departureDate);
+    return this.http.get<any[]>(`${this.apiUrl}/search-by-city`, { params }).pipe(
+      map((schedules) => schedules.map((schedule) => this.convertSchedule(schedule)))
+    );
   }
 }
