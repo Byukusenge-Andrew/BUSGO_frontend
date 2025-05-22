@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {AdminCompanyPaymentsComponent} from '../../components/company-payment/company-payment.component';
+import {AdminCompanyPaymentsComponent} from '../../company/company-payment/company-payment.component';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';

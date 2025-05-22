@@ -1,0 +1,109 @@
+/* Define CSS variables for theming */
+:root {
+  --primary-color: #3f51b5;
+  --accent-color: #ff4081;
+  --text-color: #333;
+  --border-radius: 8px;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.company-add-bus-container {
+  max-width: 900px; /* Slightly wider for better form layout */
+  margin: 2rem auto;
+  padding: 0  2rem 0;
+  font-family: 'Roboto', sans-serif;
+
+  mat-card {
+    padding: 0;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    background: #fff;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
+  }
+
+  .form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .form-row .wide-input {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0;
+    background: #f9f9f9;
+    border-radius: var(--border-radius);
+  }
+
+  .amenities-grid mat-checkbox {
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+
+  .amenities-grid mat-checkbox:hover {
+    background-color: #e8eaf6;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+  }
+
+  .full-width mat-form-field {
+    width: 100%;
+  }
+
+  mat-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+  }
+
+  mat-card-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  button[mat-icon-button] {
+    margin-right: 1rem;
+  }
+
+  mat-spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .form-row {
+      flex-direction: column;
+    }
+
+    .form-row .wide-input {
+      min-width: 100%;
+    }
+
+    .amenities-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

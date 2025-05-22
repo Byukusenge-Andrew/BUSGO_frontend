@@ -7,25 +7,13 @@ import { map } from 'rxjs/operators';
 export interface Ticket {
   id: string;
   bookingId: string;
-  routeName: string;
-  origin: string;
-  destination: string;
-  departureDate: Date;
-  departureTime: string;
-  busRegistration: string;
-  seatNumbers: string[];
-  passengerName: string;
-  passengerEmail: string;
-  passengerPhone?: string;
-  price: number;
-  status: 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
-  paymentStatus: 'PAID' | 'PENDING' | 'REFUNDED';
-  checkInStatus: 'NOT_CHECKED_IN' | 'CHECKED_IN';
-  checkInTime?: Date;
-  notes?: string;
-  createdAt: Date;
+  customerName: string;
+  route: string;
+  date: Date;
+  seats: number;
+  status: 'ACTIVE' | 'USED' | 'CANCELLED' | 'PENDING';
+  price?: number; // Optional, for stats
 }
-
 export interface TicketFilter {
   status?: string;
   routeId?: string;
@@ -69,24 +57,18 @@ export class TicketService {
         }
       });
     }
-    
+
     return this.http.get<any[]>(`${this.apiUrl}`, { params })
       .pipe(map(tickets => tickets.map(ticket => this.convertTicket(ticket))));
   }
 
+
+
+
+
   // Get company tickets
-  getCompanyTickets(companyId: string, filter?: TicketFilter): Observable<Ticket[]> {
-    let params = new HttpParams();
-    if (filter) {
-      (Object.keys(filter) as Array<keyof TicketFilter>).forEach(key => {
-        if (filter[key] !== undefined && filter[key] !== null) {
-          params = params.set(key, filter[key].toString());
-        }
-      });
-    }
-    
-    return this.http.get<any[]>(`${this.apiUrl}/company/${companyId}`, { params })
-      .pipe(map(tickets => tickets.map(ticket => this.convertTicket(ticket))));
+  getCompanyTickets(companyId:string, page: number = 0, size: number = 10): Observable<Ticket[]> {
+    return this.http.get<Ticket[]>(`/api/tickets/company/${companyId}`);
   }
 
   // Get user tickets
@@ -126,10 +108,9 @@ export class TicketService {
   }
 
   // Get ticket statistics for a company
-  getTicketStats(companyId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/company/${companyId}/stats`);
+  getTicketStats(companyId: number): Observable<{ active: number; used: number; cancelled: number; pending: number }> {
+    return this.http.get<{ active: number; used: number; cancelled: number; pending: number }>(`/api/tickets/company/${companyId}/stats`);
   }
-  
   // Create a new ticket
   createTicket(ticket: Partial<Ticket>): Observable<Ticket> {
     return this.http.post<any>(`${this.apiUrl}`, ticket)

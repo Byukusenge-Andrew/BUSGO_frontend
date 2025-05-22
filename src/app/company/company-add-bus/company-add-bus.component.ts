@@ -14,6 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import {AuthService} from '../../services/auth.service';
 import {BusService} from '../../services/bus.service';
 import {response} from 'express';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
 
 interface BusType {
   value: string;
@@ -36,7 +37,9 @@ interface BusType {
     MatSnackBarModule,
     MatIconModule,
     MatCheckboxModule,
-    MatDividerModule
+    MatDividerModule,
+    MatProgressSpinner
+
   ],
 
   templateUrl:'./company-add-bus.component.html',

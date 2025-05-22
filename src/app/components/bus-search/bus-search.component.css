@@ -32,7 +32,10 @@
   font-weight: 500;
 }
 .form-group input {
-  border-radius: 5px;
+  border-radius: 10px;
+}
+.form-group mat-form-field {
+  border: red;
 }
 
 .input-with-icon {
@@ -276,5 +279,4 @@
   .bus-actions button {
     flex: 1;
   }
-}
-/*# sourceMappingURL=bus-search.component.css.map */
+}/*# sourceMappingURL=bus-search.component.css.map */

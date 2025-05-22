@@ -6,6 +6,7 @@ import { BusBooking } from '../types/auth.types';
 import { environment } from '../../environments/environment';
 
 interface Stats {
+  usedPoints: number;
   activeBookings: number;
   totalBookings: number;
   rewardsPoints: number;
@@ -117,7 +118,7 @@ export class UserService {
     return this.http.get<Stats>(`${this.apiUrl}/${userId}/stats`).pipe(
       catchError(error => {
         console.error(error);
-        return of({ activeBookings: 0, totalBookings: 0, rewardsPoints: 0 });
+        return of({ activeBookings: 0, totalBookings: 0, rewardsPoints: 0, usedPoints: 0 });
       })
     );
   }

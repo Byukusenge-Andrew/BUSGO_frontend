@@ -108,7 +108,8 @@ import { AuthService } from '../../services/auth.service';
       transition: background-color 0.3s ease;
 
       &:hover {
-        background-color: darken(#ff4c30, 10%);
+        transform: translateY(-2px);
+        background-color: darken(#d32f2f, 10%); // Darken #d32f2f by 10%
       }
 
       &:disabled {

@@ -1,0 +1,97 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; // Spacing between header and content
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0; // Light border
+
+  .header-content {
+    h1 {
+      font-size: 2rem;
+      font-weight: 500;
+      margin: 0 0 0.25rem 0;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    button {
+      mat-icon {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; // Spacing between report cards
+}
+
+.report-section {
+  mat-card-header {
+    padding-bottom: 0.5rem; // Add some space below the title
+  }
+
+  mat-card-content {
+    p {
+      margin-bottom: 1rem;
+      color: #424242; // Slightly darker text for content
+    }
+  }
+
+  .company-id-input {
+    width: 100%;
+    max-width: 300px; // Limit width of the input field
+    margin-top: 0.5rem;
+  }
+
+  mat-card-actions {
+    padding-top: 1rem; // Space above the action buttons
+    display: flex;
+    justify-content: flex-start; // Align button to the start
+
+    button {
+      mat-icon {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    .header-actions {
+      width: 100%;
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .report-section {
+    .company-id-input {
+      max-width: none; // Full width on smaller screens
+    }
+  }
+}

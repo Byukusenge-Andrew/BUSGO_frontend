@@ -9,6 +9,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/bus-booking.service';
 import { BusService } from '../../services/bus.service';
@@ -57,7 +59,8 @@ interface RecentBooking {
     MatListModule,
     MatBadgeModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    BaseChartDirective
   ],
   template: `
     <div class="dashboard-container">
@@ -142,6 +145,30 @@ interface RecentBooking {
                 <div class="stat-value">{{ stats.completedPayments }}/{{ stats.totalPayments }}</div>
                 <div class="stat-label">Completed Payments</div>
               </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="charts-section">
+          <mat-card>
+            <mat-card-title>Revenue Trends</mat-card-title>
+            <mat-card-content class="chart-container">
+              <canvas baseChart
+                [data]="revenueChartData"
+                [options]="revenueChartOptions"
+                [type]="'line'">
+              </canvas>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card>
+            <mat-card-title>Booking Distribution</mat-card-title>
+            <mat-card-content class="chart-container">
+              <canvas baseChart
+                [data]="bookingDistributionData"
+                [options]="bookingDistributionOptions"
+                [type]="'pie'">
+              </canvas>
             </mat-card-content>
           </mat-card>
         </div>
@@ -267,6 +294,15 @@ interface RecentBooking {
     </div>
   `,
   styles: [`
+    :host {
+      --primary-black: #333;
+      --primary-red: #d32f2f;
+      --text-light: #f5f5f5;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --primary-bg: #ffffff;
+      --accent-color: #b71c1c;
+      --text-dark: #555; /* Define text-dark if not globally available */
+    }
     .booking-info {
       margin-top: 10px;
          margin-bottom: 10px;
@@ -315,6 +351,8 @@ interface RecentBooking {
 
     .stat-card {
       transition: transform 0.3s ease;
+      border-radius: 8px; /* Add border-radius for consistency */
+      box-shadow: var(--card-shadow); /* Add shadow for consistency */
     }
 
     .stat-card:hover {
@@ -380,6 +418,37 @@ interface RecentBooking {
       gap: 1.5rem;
     }
 
+    /* Charts Section Styles */
+    .charts-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Use auto-fit */
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+
+      mat-card {
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        mat-card-title {
+           color: var(--primary-black);
+           font-size: 1.25rem; /* Consistent title size */
+           font-weight: 500;
+           margin-bottom: 1rem;
+           padding: 0 1rem;
+        }
+      }
+    }
+
+    .chart-container { /* Style for chart canvas container */
+        padding: 1rem;
+        background-color: rgba(0, 0, 0, 0.02); /* Slight background for visual separation */
+        border-radius: 4px;
+        canvas {
+            max-width: 100%;
+            height: 250px; /* Fixed height for charts */
+        }
+    }
+
+
     @media (max-width: 992px) { /* Adjusted breakpoint */
       .dashboard-content {
         grid-template-columns: 1fr;
@@ -398,6 +467,12 @@ interface RecentBooking {
         }
         .dashboard-actions button {
             width: 100%; /* Ensure buttons take full width */
+        }
+         .charts-section {
+           grid-template-columns: 1fr; /* Stack charts on smaller screens */
+         }
+         .chart-container canvas {
+            height: 200px; /* Smaller height on mobile */
         }
     }
 
@@ -454,7 +529,7 @@ interface RecentBooking {
 
     .booking-item {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-between;\r
       align-items: center;
       width: 100%;
       padding: 0.5rem 0;
@@ -510,7 +585,7 @@ interface RecentBooking {
         margin-right: 8px; /* Space between icon and text */
     }
 
-    /* Ensure mat-list-item content doesn't overflow */
+    /* Ensure mat-list-item content doesn\'t overflow */
     mat-list-item {
         height: auto !important; /* Allow item height to adjust */
         padding-top: 8px;
@@ -545,7 +620,101 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
   recentBookings: RecentBooking[] = [];
   recentPayments: Payment[] = []; // Using imported Payment type
   private subscriptions: Subscription[] = [];
-  // private schedule: any; // Removed unused variable
+
+  // Revenue Chart
+  public revenueChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'Revenue',
+        fill: true,
+        tension: 0.4, // Slightly smoother line
+        borderColor: '#d32f2f', // Use existing primary red
+        backgroundColor: 'rgba(211, 47, 47, 0.2)', // Lighter red background
+        pointBackgroundColor: '#d32f2f',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#d32f2f',
+      }
+    ]
+  };
+
+  public revenueChartOptions: ChartOptions<'line'> = { // Use ChartOptions
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        labels: {
+          color: 'var(--primary-black)',
+        }
+      },
+      title: {
+        display: true,
+        text: 'Monthly Revenue',
+        color: 'var(--primary-black)',
+         font: {
+          size: 16,
+          weight: 'bold' as any
+        }
+      },
+       tooltip: { // Improve tooltip appearance
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        bodyColor: '#fff',
+        titleColor: '#fff',
+      }
+    },
+    scales: { // Style scales
+      x: {
+        ticks: { color: 'var(--text-dark)' },
+         grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      },
+      y: {
+        ticks: { color: 'var(--text-dark)' },
+         grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      }
+    }
+  };
+
+  // Booking Distribution Chart
+  public bookingDistributionData: ChartConfiguration<'pie'>['data'] = {
+    labels: ['Confirmed', 'Pending', 'Cancelled'],
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: ['#4caf50', '#ff9800', '#f44336'], // Example colors (Material Design like)
+      borderColor: '#fff',
+      borderWidth: 2,
+    }]
+  };
+
+  public bookingDistributionOptions: ChartOptions<'pie'> = { // Use ChartOptions
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+         labels: {
+          color: 'var(--primary-black)',
+        }
+      },
+      title: {
+        display: true,
+        text: 'Booking Status Distribution',
+        color: 'var(--primary-black)',
+         font: {
+          size: 16,
+          weight: 'bold' as any
+        }
+      },
+       tooltip: { // Improve tooltip appearance
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        bodyColor: '#fff',
+        titleColor: '#fff',
+      }
+    }
+  };
 
   constructor(
     private authService: AuthService,
@@ -562,7 +731,9 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
       if (user && 'companyName' in user) {
         this.companyName = user.companyName;
         this.companyId = user.companyId?.toString() || null;
-        this.loadDashboardData();
+        this.loadDashboardData(); // This method now loads all data including charts
+      } else {
+          this.loading = false; // Stop loading if no user/company found
       }
     });
 
@@ -580,59 +751,39 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Load buses count
-    const busSub = this.busService.getCompanyBuses(this.companyId).subscribe({
-      next: (buses: Bus[]) => {
+    forkJoin({
+      buses: this.busService.getCompanyBuses(this.companyId),
+      schedules: this.scheduleService.getCompanySchedule(this.companyId),
+      routes: this.routeService.getCompanyRoutes(this.companyId),
+      bookings: this.bookingService.getCompanyBookings(this.companyId),
+      payments: this.paymentService.getCompanyPayments(this.companyId)
+    }).subscribe({
+      next: ({ buses, schedules, routes, bookings, payments }) => {
+        // Process stats (existing logic)
         this.stats.totalBuses = buses.length;
-      },
-      error: (error: any) => {
-        console.error(error);
-      }
-    });
-    const scheduleSub = this.scheduleService.getCompanySchedule(this.companyId).subscribe({
-        next: (schedules: Schedule[]) => {
-          console.log("Schedules fetched:", schedules);
           this.stats.totalSchedules = schedules.length;
-
-        },
-        error: (error: any) => {
-          console.error(error);
-        }
-      }
-    )
-
-    // Load routes count
-    const routeSub = this.routeService.getCompanyRoutes(this.companyId).subscribe({
-      next: (routes: Route[]) => {
         this.stats.activeRoutes = routes.filter(route => route.active).length;
-      },
-      error: (error: any) => {
-        console.error(error);
-      }
-    });
 
-    // Load bookings data
-    const bookingSub = this.bookingService.getCompanyBookings(this.companyId).subscribe({
-      next: (bookings: Booking[]) => {
-        // Calculate total bookings
         this.stats.totalBookings = bookings.length;
-
-        // Calculate today's bookings
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
         this.stats.todayBookings = bookings.filter(booking => {
           const bookingDate = new Date(booking.date);
           bookingDate.setHours(0, 0, 0, 0);
           return bookingDate.getTime() === today.getTime();
         }).length;
 
-        // Calculate total revenue
-        this.stats.revenue = bookings.reduce((total, booking) => {
-          return total + (booking.amount || 0);
-        }, 0);
 
-        // Get recent bookings (last 5)
+        this.stats.totalPayments = payments.length;
+        this.stats.completedPayments = payments.filter((payment: Payment) =>
+          payment.status === 'COMPLETED'
+        ).length;
+
+         this.stats.revenue = payments
+           .filter((payment: Payment) => payment.status === 'COMPLETED')
+           .reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+        // Process recent data (existing logic)
         this.recentBookings = bookings
           .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
           .slice(0, 5)
@@ -646,41 +797,47 @@ export class CompanyDashboardComponent implements OnInit, OnDestroy {
             status: booking.status as 'CONFIRMED' | 'PENDING' | 'CANCELLED',
             paymentStatus: booking.paymentStatus as PaymentStatus | undefined
           }));
-      },
-      error: (error: any) => {
-        console.error(error);
-        this.loading = false;
-      }
-    });
 
-    // Load payments data
-    const paymentSub = this.paymentService.getCompanyPayments(this.companyId).subscribe({
-      next: (payments: Payment[]) => {
-        // Calculate payment statistics
-        this.stats.totalPayments = payments.length;
-        this.stats.completedPayments = payments.filter((payment: Payment) =>
-          payment.status === 'COMPLETED'
-        ).length;
-
-        // Recalculate revenue based on completed payments for more accuracy
-        this.stats.revenue = payments
-          .filter((payment: Payment) => payment.status === 'COMPLETED')
-          .reduce((sum, payment) => sum + (payment.amount || 0), 0);
-
-        // Get recent payments (last 5)
         this.recentPayments = payments
           .sort((a: Payment, b: Payment) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
           .slice(0, 5);
 
-        this.loading = false;
+        // Process revenue data for chart
+        const monthlyRevenue = new Array(6).fill(0);
+        const months = Array.from({length: 6}, (_, i) => {
+          const d = new Date();
+          d.setMonth(d.getMonth() - i);
+          return d.toLocaleString('default', { month: 'short' });
+        }).reverse();
+
+        payments.forEach(payment => {
+          if (payment.status === 'COMPLETED') {
+            const paymentDate = new Date(payment.paymentDate);
+            const monthDiff = (new Date().getMonth() - paymentDate.getMonth() + 12) % 12;
+            if (monthDiff < 6) {
+              monthlyRevenue[monthDiff] += payment.amount || 0;
+            }
+          }
+        });
+
+        this.revenueChartData.labels = months;
+        this.revenueChartData.datasets[0].data = monthlyRevenue.reverse();
+
+        // Calculate booking distribution
+        const confirmed = bookings.filter(b => b.status === 'CONFIRMED').length;
+        const pending = bookings.filter(b => b.status === 'PENDING').length;
+        const cancelled = bookings.filter(b => b.status === 'CANCELLED').length;
+
+        this.bookingDistributionData.datasets[0].data = [confirmed, pending, cancelled];
+
+
+        this.loading = false; // Set loading to false after all data is processed
       },
       error: (error: any) => {
-        console.error('Error loading payment data:', error);
-        this.loading = false;
+        console.error('Error loading dashboard data:', error);
+        this.loading = false; // Set loading to false even on error
       }
     });
-
-    this.subscriptions.push(busSub, routeSub, bookingSub, scheduleSub, paymentSub);
   }
 
   getStatusColor(status: string): string {

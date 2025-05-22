@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,21 +13,15 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { RouteService, Route } from '../../../services/bus-route.service';
+import { CompanyService, Company } from '../../../services/company.services';
+import { RouteDialogComponent } from './route-dialog.component';
 
-interface Route {
-  id: number;
-  name: string;
-  company: string;
-  origin: string;
-  destination: string;
-  distance: number;
-  duration: number;
+// Interface for display purposes (extends Route)
+interface DisplayRoute extends Route {
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
   price: number;
-  status: string;
-  scheduleCount: number;
-  lastUpdated: Date;
+  companyName: string;
 }
 
 @Component({
@@ -49,12 +43,11 @@ interface Route {
     MatChipsModule,
     MatBadgeModule,
     MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule
   ],
   template: `
     <div class="admin-routes">
       <div class="header">
+        <h2>Route Management</h2>
         <button mat-raised-button color="primary" (click)="openAddRouteDialog()">
           <mat-icon>add</mat-icon> Add Route
         </button>
@@ -71,8 +64,8 @@ interface Route {
           <mat-label>Company</mat-label>
           <mat-select (selectionChange)="filterByCompany($event)">
             <mat-option value="">All Companies</mat-option>
-            <mat-option *ngFor="let company of companies" [value]="company">
-              {{ company }}
+            <mat-option *ngFor="let company of companies" [value]="company.companyId">
+              {{ company.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -89,56 +82,48 @@ interface Route {
       </div>
 
       <div class="table-container mat-elevation-z8">
-        <table mat-table [dataSource]="routes" matSort>
-          <!-- ID Column -->
+        <div *ngIf="isLoading" class="loading">Loading...</div>
+        <table mat-table [dataSource]="dataSource" matSort>
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
             <td mat-cell *matCellDef="let route">{{ route.id }}</td>
           </ng-container>
 
-          <!-- Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-            <td mat-cell *matCellDef="let route">{{ route.name }}</td>
+            <td mat-cell *matCellDef="let route">{{ route.routeName || route.origin + ' - ' + route.destination }}</td>
           </ng-container>
 
-          <!-- Company Column -->
           <ng-container matColumnDef="company">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Company</th>
-            <td mat-cell *matCellDef="let route">{{ route.company }}</td>
+            <td mat-cell *matCellDef="let route">{{ route.companyName }}</td>
           </ng-container>
 
-          <!-- Origin Column -->
           <ng-container matColumnDef="origin">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Origin</th>
             <td mat-cell *matCellDef="let route">{{ route.origin }}</td>
           </ng-container>
 
-          <!-- Destination Column -->
           <ng-container matColumnDef="destination">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Destination</th>
             <td mat-cell *matCellDef="let route">{{ route.destination }}</td>
           </ng-container>
 
-          <!-- Distance Column -->
           <ng-container matColumnDef="distance">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Distance</th>
             <td mat-cell *matCellDef="let route">{{ route.distance }} km</td>
           </ng-container>
 
-          <!-- Duration Column -->
           <ng-container matColumnDef="duration">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Duration</th>
             <td mat-cell *matCellDef="let route">{{ route.duration }} hrs</td>
           </ng-container>
 
-          <!-- Price Column -->
           <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Price</th>
             <td mat-cell *matCellDef="let route">{{ route.price | currency:'RWF ' }}</td>
           </ng-container>
 
-          <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
             <td mat-cell *matCellDef="let route">
@@ -148,25 +133,6 @@ interface Route {
             </td>
           </ng-container>
 
-          <!-- Schedule Count Column -->
-          <ng-container matColumnDef="scheduleCount">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Schedules</th>
-            <td mat-cell *matCellDef="let route">
-              <mat-chip-listbox>
-                <mat-chip color="primary" selected>
-                  {{ route.scheduleCount }} Schedules
-                </mat-chip>
-              </mat-chip-listbox>
-            </td>
-          </ng-container>
-
-          <!-- Last Updated Column -->
-          <ng-container matColumnDef="lastUpdated">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Updated</th>
-            <td mat-cell *matCellDef="let route">{{ route.lastUpdated | date:'medium' }}</td>
-          </ng-container>
-
-          <!-- Actions Column -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let route">
@@ -185,9 +151,8 @@ interface Route {
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
-          <!-- Row shown when there is no matching data. -->
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="12">No data matching the filter "{{ input.value }}"</td>
+            <td class="mat-cell" colspan="10">No data matching the filter "{{ input.value }}"</td>
           </tr>
         </table>
 
@@ -197,7 +162,9 @@ interface Route {
   `,
   styles: [`
     .admin-routes {
-      padding: 1rem;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
 
       .header {
         display: flex;
@@ -207,78 +174,99 @@ interface Route {
 
         h2 {
           margin: 0;
-          color: var(--primary-black);
+          font-size: 1.8rem;
+          color: #333;
         }
       }
 
       .filters {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
         flex-wrap: wrap;
 
         mat-form-field {
           flex: 1;
-          min-width: 200px;
+          min-width: 250px;
         }
       }
 
       .table-container {
         position: relative;
-        min-height: 200px;
-        max-height: 600px;
-        overflow: auto;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.2rem;
+        color: #666;
+        z-index: 10;
       }
 
       table {
         width: 100%;
+        border-collapse: collapse;
       }
 
       .mat-column-actions {
-        width: 120px;
+        width: 150px;
         text-align: center;
       }
 
       .status-badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 0.9rem;
         font-weight: 500;
 
         &.active {
           background-color: #e8f5e9;
-          color: #388e3c;
+          color: #2e7d32;
         }
 
         &.inactive {
           background-color: #ffebee;
-          color: #d32f2f;
+          color: #c62828;
         }
 
         &.maintenance {
           background-color: #fff3e0;
-          color: #f57c00;
+          color: #ef6c00;
         }
       }
-
-      mat-chip-list {
-        display: inline-block;
-      }
     }
-  `]
+  `],
 })
-export class AdminRoutesComponent implements OnInit {
-  routes: Route[] = [];
-  companies: string[] = [];
+export class AdminRoutesComponent implements OnInit, AfterViewInit {
+  dataSource = new MatTableDataSource<DisplayRoute>([]);
+  companies: Company[] = [];
   displayedColumns: string[] = [
-    'id', 'name', 'company', 'origin', 'destination', 'distance',
-    'duration', 'price', 'status', 'scheduleCount', 'lastUpdated', 'actions'
+    'id',
+    'name',
+    'company',
+    'origin',
+    'destination',
+    'distance',
+    'duration',
+    'price',
+    'status',
+    'actions',
   ];
-  filteredRoutes: Route[] = [];
+  isLoading = false;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private routeService: RouteService,
+    private companyService: CompanyService
   ) {}
 
   ngOnInit(): void {
@@ -286,137 +274,188 @@ export class AdminRoutesComponent implements OnInit {
     this.loadCompanies();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
+  private mapToDisplayRoute(route: Route, companyName: string): DisplayRoute {
+    return {
+      ...route,
+      price: route.basePrice,
+      status: route.active ? 'ACTIVE' : 'INACTIVE', // Note: MAINTENANCE not supported by service
+      companyName,
+    };
+  }
+
   loadRoutes(): void {
-    // In a real app, this would fetch from the API
-    this.routes = [
-      {
-        id: 1,
-        name: 'Kigali-Kampala Express',
-        company: 'Rwanda Express',
-        origin: 'Kigali',
-        destination: 'Kampala',
-        distance: 450,
-        duration: 8,
-        price: 15000,
-        status: 'ACTIVE',
-        scheduleCount: 4,
-        lastUpdated: new Date(2023, 0, 15)
+    this.isLoading = true;
+    this.companyService.getAllCompanies().subscribe({
+      next: (companies) => {
+        this.companies = companies;
+        this.routeService.getAllRoutes().subscribe({
+          next: (routes) => {
+            this.dataSource.data = routes.map((route) => {
+              const company = companies.find((c) => c.companyId === route.companyId);
+              return this.mapToDisplayRoute(route, company?.name || 'Unknown');
+            });
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.snackBar.open('Failed to load routes: ' + error.message, 'Close', { duration: 5000 });
+            this.isLoading = false;
+          },
+        });
       },
-      {
-        id: 2,
-        name: 'Kigali-Bujumbura Route',
-        company: 'Volcano Transport',
-        origin: 'Kigali',
-        destination: 'Bujumbura',
-        distance: 350,
-        duration: 6,
-        price: 12000,
-        status: 'ACTIVE',
-        scheduleCount: 3,
-        lastUpdated: new Date(2023, 1, 20)
+      error: (error) => {
+        this.snackBar.open('Failed to load companies: ' + error.message, 'Close', { duration: 5000 });
+        this.isLoading = false;
       },
-      {
-        id: 3,
-        name: 'Kigali-Gisenyi Express',
-        company: 'Kigali Bus Services',
-        origin: 'Kigali',
-        destination: 'Gisenyi',
-        distance: 150,
-        duration: 3,
-        price: 5000,
-        status: 'MAINTENANCE',
-        scheduleCount: 2,
-        lastUpdated: new Date(2023, 2, 5)
-      },
-      {
-        id: 4,
-        name: 'Kigali-Cyangugu Route',
-        company: 'Lake Kivu Transport',
-        origin: 'Kigali',
-        destination: 'Cyangugu',
-        distance: 200,
-        duration: 4,
-        price: 7000,
-        status: 'INACTIVE',
-        scheduleCount: 1,
-        lastUpdated: new Date(2023, 1, 28)
-      },
-      {
-        id: 5,
-        name: 'Kigali-Ruhengeri Express',
-        company: 'Mountain View Buses',
-        origin: 'Kigali',
-        destination: 'Ruhengeri',
-        distance: 100,
-        duration: 2,
-        price: 4000,
-        status: 'ACTIVE',
-        scheduleCount: 5,
-        lastUpdated: new Date(2023, 2, 10)
-      }
-    ];
-    this.filteredRoutes = [...this.routes];
+    });
   }
 
   loadCompanies(): void {
-    // In a real app, this would fetch from the API
-    this.companies = [
-      'Rwanda Express',
-      'Volcano Transport',
-      'Kigali Bus Services',
-      'Lake Kivu Transport',
-      'Mountain View Buses'
-    ];
+    this.companyService.getAllCompanies().subscribe({
+      next: (companies) => {
+        this.companies = companies;
+      },
+      error: (error) => {
+        this.snackBar.open('Failed to load companies: ' + error.message, 'Close', { duration: 5000 });
+      },
+    });
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value.toLowerCase().trim();
-    this.filteredRoutes = this.routes.filter(route =>
-      route.name.toLowerCase().includes(filterValue) ||
-      route.origin.toLowerCase().includes(filterValue) ||
-      route.destination.toLowerCase().includes(filterValue)
-    );
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.isLoading = true;
+    if (filterValue) {
+      this.routeService.searchRoutes(filterValue).subscribe({
+        next: (routes) => {
+          this.dataSource.data = routes.map((route) => {
+            const company = this.companies.find((c) => c.companyId === route.companyId);
+            return this.mapToDisplayRoute(route, company?.name || 'Unknown');
+          });
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.snackBar.open('Failed to search routes: ' + error.message, 'Close', { duration: 5000 });
+          this.isLoading = false;
+        },
+      });
+    } else {
+      this.loadRoutes();
+    }
   }
 
   filterByCompany(event: any): void {
-    const company = event.value;
-    if (!company) {
-      this.filteredRoutes = [...this.routes];
+    const companyId = event.value;
+    if (!companyId) {
+      this.loadRoutes();
       return;
     }
-    this.filteredRoutes = this.routes.filter(route => route.company === company);
+    this.isLoading = true;
+    this.routeService.getCompanyRoutes(companyId).subscribe({
+      next: (routes) => {
+        this.dataSource.data = routes.map((route) => {
+          const company = this.companies.find((c) => c.companyId === route.companyId);
+          return this.mapToDisplayRoute(route, company?.name || 'Unknown');
+        });
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.snackBar.open('Failed to filter by company: ' + error.message, 'Close', { duration: 5000 });
+        this.isLoading = false;
+      },
+    });
   }
 
   filterByStatus(event: any): void {
     const status = event.value;
     if (!status) {
-      this.filteredRoutes = [...this.routes];
+      this.loadRoutes();
       return;
     }
-    this.filteredRoutes = this.routes.filter(route => route.status === status);
+    this.dataSource.data = this.dataSource.data.filter((route) => route.status === status);
   }
 
   openAddRouteDialog(): void {
-    // In a real app, this would open a dialog to add a route
-    this.snackBar.open('Add route functionality will be implemented', 'Close', { duration: 3000 });
+    const dialogRef = this.dialog.open(RouteDialogComponent, {
+      width: '600px',
+      data: { mode: 'add', route: {} as Route, companies: this.companies },
+    });
+
+    dialogRef.afterClosed().subscribe((result: Route | undefined) => {
+      if (result) {
+        this.isLoading = true;
+        this.routeService.createRoute(result).subscribe({
+          next: (newRoute) => {
+            const company = this.companies.find((c) => c.companyId === newRoute.companyId);
+            this.dataSource.data = [
+              ...this.dataSource.data,
+              this.mapToDisplayRoute(newRoute, company?.name || 'Unknown'),
+            ];
+            this.snackBar.open(`Route created`, 'Close', { duration: 3000 });
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.snackBar.open('Failed to create route: ' + error.message, 'Close', { duration: 5000 });
+            this.isLoading = false;
+          },
+        });
+      }
+    });
   }
 
-  viewRoute(route: Route): void {
-    // In a real app, this would open a dialog to view route details
-    this.snackBar.open(`View route ${route.name} functionality will be implemented`, 'Close', { duration: 3000 });
+  viewRoute(route: DisplayRoute): void {
+    this.dialog.open(RouteDialogComponent, {
+      width: '600px',
+      data: { mode: 'view', route, companies: this.companies },
+    });
   }
 
-  editRoute(route: Route): void {
-    // In a real app, this would open a dialog to edit a route
-    this.snackBar.open(`Edit route ${route.name} functionality will be implemented`, 'Close', { duration: 3000 });
+  editRoute(route: DisplayRoute): void {
+    const dialogRef = this.dialog.open(RouteDialogComponent, {
+      width: '600px',
+      data: { mode: 'edit', route, companies: this.companies },
+    });
+
+    dialogRef.afterClosed().subscribe((result: Route | undefined) => {
+      if (result) {
+        this.isLoading = true;
+        this.routeService.updateRoute(route.id, result).subscribe({
+          next: (updatedRoute) => {
+            const company = this.companies.find((c) => c.companyId === updatedRoute.companyId);
+            const index = this.dataSource.data.findIndex((r) => r.id === updatedRoute.id);
+            if (index !== -1) {
+              this.dataSource.data[index] = this.mapToDisplayRoute(updatedRoute, company?.name || 'Unknown');
+              this.dataSource.data = [...this.dataSource.data];
+            }
+            this.snackBar.open(`Route updated`, 'Close', { duration: 3000 });
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.snackBar.open('Failed to update route: ' + error.message, 'Close', { duration: 5000 });
+            this.isLoading = false;
+          },
+        });
+      }
+    });
   }
 
-  deleteRoute(route: Route): void {
-    if (confirm(`Are you sure you want to delete ${route.name}?`)) {
-      // In a real app, this would delete the route from the API
-      this.routes = this.routes.filter(r => r.id !== route.id);
-      this.filteredRoutes = this.filteredRoutes.filter(r => r.id !== route.id);
-      this.snackBar.open(`Route ${route.name} deleted successfully`, 'Close', { duration: 3000 });
+  deleteRoute(route: DisplayRoute): void {
+    if (confirm(`Are you sure you want to delete ${route.routeName || route.origin + ' - ' + route.destination}?`)) {
+      this.isLoading = true;
+      this.routeService.deleteRoute(route.id).subscribe({
+        next: () => {
+          this.dataSource.data = this.dataSource.data.filter((r) => r.id !== route.id);
+          this.snackBar.open(`Route deleted`, 'Close', { duration: 3000 });
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.snackBar.open('Failed to delete route: ' + error.message, 'Close', { duration: 5000 });
+          this.isLoading = false;
+        },
+      });
     }
   }
 }

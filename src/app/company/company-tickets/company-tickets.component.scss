@@ -1,0 +1,83 @@
+// Define fallback variables to match original styles
+$primary-color: #3f51b5; // Approximation of mat-blue-500
+$warn-color: #f44336; // Approximation of mat-red-500 (matches .error { color: red })
+$text-color: #212121; // Approximation of mat-grey-900
+
+// Container for the component
+.tickets-container {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  // Nested Material card for context
+  mat-card {
+    padding: 1rem;
+  }
+}
+
+// Table styling
+table {
+  width: 100%;
+
+  .mat-column-actions {
+    width: 100px;
+    text-align: center;
+  }
+}
+
+// Loading, error, and no-data states
+.loading,
+.error,
+.no-data {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1.1rem;
+
+  &.error {
+    color: $warn-color;
+  }
+}
+
+// Chart styling
+.stats-chart {
+  max-width: 400px;
+  margin: 1rem auto;
+
+  canvas {
+    width: 100% !important;
+  }
+}
+
+// Dark theme overrides
+@media (prefers-color-scheme: dark) {
+  $text-color: #f5f5f5; // Light grey for dark theme
+  $background-color: #424242; // Dark grey background
+
+  .tickets-container {
+    mat-card {
+      background: $background-color;
+    }
+  }
+
+  table {
+    background: #333; // Darker table background
+
+    .mat-column-actions {
+      color: $text-color;
+    }
+  }
+
+  .loading,
+  .error,
+  .no-data {
+    color: $text-color;
+
+    &.error {
+      color: #ef5350; // Lighter red for dark theme
+    }
+  }
+
+  .stats-chart {
+    background: #333;
+  }
+}

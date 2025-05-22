@@ -1,0 +1,91 @@
+<div class="company-add-bus-container">
+  <mat-card>
+    <mat-card-header>
+      <button mat-icon-button routerLink="/company/buses" aria-label="Back to bus list">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <mat-card-title>Add New Bus</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="busForm" (ngSubmit)="onSubmit()" *ngIf="busForm">
+        <!-- Bus Details Section -->
+        <fieldset class="form-section">
+          <legend>Bus Details</legend>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="wide-input">
+              <mat-label>Registration Number</mat-label>
+              <input matInput formControlName="registrationNumber" placeholder="e.g., ABC123" required>
+              <mat-error *ngIf="busForm.get('registrationNumber')?.hasError('required')">
+                Registration number is required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="wide-input">
+              <mat-label>Bus Model</mat-label>
+              <input matInput formControlName="model" placeholder="e.g., Volvo B8R" required>
+              <mat-error *ngIf="busForm.get('model')?.hasError('required')">
+                Bus model is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="wide-input">
+              <mat-label>Bus Type</mat-label>
+              <mat-select formControlName="busType" required>
+                <mat-option *ngFor="let type of busTypes" [value]="type.value">{{ type.viewValue }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="busForm.get('busType')?.hasError('required')">
+                Please select a bus type
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="wide-input">
+              <mat-label>Capacity</mat-label>
+              <input matInput type="number" min="1" formControlName="capacity" placeholder="e.g., 45" required>
+              <mat-error *ngIf="busForm.get('capacity')?.hasError('required')">
+                Capacity is required
+              </mat-error>
+              <mat-error *ngIf="busForm.get('capacity')?.hasError('min')">
+                Capacity must be at least 1
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </fieldset>
+
+        <!-- Amenities Section -->
+        <fieldset class="form-section">
+          <legend>Amenities</legend>
+          <div class="amenities-grid">
+            <mat-checkbox formControlName="hasAC">Air Conditioning</mat-checkbox>
+            <mat-checkbox formControlName="hasWifi">WiFi</mat-checkbox>
+            <mat-checkbox formControlName="hasUSB">USB Charging</mat-checkbox>
+            <mat-checkbox formControlName="hasTV">TV/Entertainment</mat-checkbox>
+            <mat-checkbox formControlName="hasWater">Drinking Water</mat-checkbox>
+            <mat-checkbox formControlName="hasBathroom">Bathroom</mat-checkbox>
+            <mat-checkbox formControlName="hasRecliningSeats">Reclining Seats</mat-checkbox>
+            <mat-checkbox formControlName="hasLegroom">Extra Legroom</mat-checkbox>
+          </div>
+        </fieldset>
+
+        <!-- Notes Section -->
+        <fieldset class="form-section full-width">
+          <legend>Additional Notes</legend>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="4" placeholder="Add any additional details..."></textarea>
+          </mat-form-field>
+        </fieldset>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button mat-stroked-button type="button" routerLink="/company/buses" [disabled]="submitting">
+            <mat-icon>cancel</mat-icon> Cancel
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+            <mat-icon *ngIf="!submitting">add</mat-icon>
+            <mat-spinner *ngIf="submitting" diameter="20"></mat-spinner>
+            <span>{{ submitting ? 'Adding...' : 'Add Bus' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

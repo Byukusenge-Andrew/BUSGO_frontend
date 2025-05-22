@@ -40,6 +40,7 @@ import {AddCompanyDialogComponent} from '../admin-add-company/admin-add-company.
   template: `
     <div class="admin-companies">
       <div class="header">
+        <h2>Admin Companies</h2>
         <button class="button" mat-raised-button color="primary" (click)="openAddCompanyDialog()">
          Add Company
         </button>

@@ -6,6 +6,11 @@ import { UserService, User as ServiceUser } from '../../services/user.service';
 import { error } from 'console';
 import { FormsModule } from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin } from 'rxjs';
 
 interface User {
   id: string;
@@ -39,405 +44,16 @@ interface Activity {
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    BaseChartDirective
+  ],
   templateUrl: './user-dashboard.component.html',
-  styles: [`
-    .dashboard-container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-
-    .dashboard-header {
-      margin-bottom: 2rem;
-    }
-
-    .dashboard-header h1 {
-      color: #2d3748;
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .dashboard-header .last-login {
-      color: #718096;
-      font-size: 0.9rem;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 1.5rem;
-    }
-
-    /* Stats Card */
-    .stats-card {
-      grid-column: span 12;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      padding: 1.5rem;
-    }
-
-    .stats-card h2 {
-      color: #2d3748;
-      font-size: 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: #f7fafc;
-      border-radius: 8px;
-      transition: transform 0.3s ease;
-    }
-
-    .stat-item:hover {
-      transform: translateY(-2px);
-    }
-
-    .stat-item i {
-      font-size: 1.5rem;
-      color: #4299e1;
-    }
-
-    .stat-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #2d3748;
-    }
-
-    .stat-label {
-      font-size: 0.875rem;
-      color: #718096;
-    }
-
-    /* Bookings Card */
-    .bookings-card {
-      grid-column: span 8;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      padding: 1.5rem;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .card-header h2 {
-      color: #2d3748;
-      font-size: 1.25rem;
-      margin: 0;
-    }
-
-    .new-booking-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: #4299e1;
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s ease;
-    }
-
-    .new-booking-btn:hover {
-      background: #3182ce;
-    }
-
-    .bookings-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .booking-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: #f7fafc;
-      border-radius: 8px;
-      transition: transform 0.3s ease;
-    }
-
-    .booking-item:hover {
-      transform: translateY(-2px);
-    }
-
-    .booking-info .route-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .booking-info .from,
-    .booking-info .to {
-      font-weight: 500;
-      color: #2d3748;
-    }
-
-    .booking-info i {
-      color: #cbd5e0;
-    }
-
-    .journey-details {
-      display: flex;
-      gap: 1.5rem;
-      color: #718096;
-      font-size: 0.875rem;
-    }
-
-    .journey-details span {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .booking-actions {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .booking-actions button {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .booking-actions button.view-ticket {
-      background: #edf2f7;
-      color: #4a5568;
-      border: none;
-    }
-
-    .booking-actions button.view-ticket:hover {
-      background: #e2e8f0;
-    }
-
-    .booking-actions button.cancel-booking {
-      background: #fff5f5;
-      color: #e53e3e;
-      border: none;
-    }
-
-    .booking-actions button.cancel-booking:hover {
-      background: #fed7d7;
-    }
-
-    .no-bookings {
-      text-align: center;
-      padding: 3rem;
-      background: #f7fafc;
-      border-radius: 8px;
-    }
-
-    .no-bookings i {
-      font-size: 3rem;
-      color: #cbd5e0;
-      margin-bottom: 1rem;
-    }
-
-    .no-bookings p {
-      color: #718096;
-      margin-bottom: 1rem;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: #4299e1;
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s ease;
-    }
-
-    .btn-primary:hover {
-      background: #3182ce;
-    }
-
-    /* Activity Card */
-    .activity-card {
-      grid-column: span 4;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      padding: 1.5rem;
-    }
-
-    .activity-card h2 {
-      color: #2d3748;
-      font-size: 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .activity-item {
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      background: #f7fafc;
-      border-radius: 8px;
-    }
-
-    .activity-icon {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      font-size: 1.25rem;
-    }
-
-    .activity-icon.booking {
-      background: #ebf8ff;
-      color: #2b6cb0;
-    }
-
-    .activity-icon.cancellation {
-      background: #fff5f5;
-      color: #e53e3e;
-    }
-
-    .activity-icon.profile {
-      background: #f0fff4;
-      color: #2f855a;
-    }
-
-    .activity-icon.support {
-      background: #faf5ff;
-      color: #805ad5;
-    }
-
-    .activity-details {
-      flex: 1;
-    }
-
-    .activity-text {
-      color: #2d3748;
-      margin-bottom: 0.25rem;
-    }
-
-    .activity-time {
-      font-size: 0.875rem;
-      color: #718096;
-    }
-
-    /* Quick Actions Card */
-    .quick-actions-card {
-      grid-column: span 12;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      padding: 1.5rem;
-    }
-
-    .quick-actions-card h2 {
-      color: #2d3748;
-      font-size: 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .action-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1.5rem;
-      background: #f7fafc;
-      border-radius: 8px;
-      text-decoration: none;
-      color: #2d3748;
-      transition: all 0.3s ease;
-    }
-
-    .action-item:hover {
-      transform: translateY(-2px);
-      background: #edf2f7;
-    }
-
-    .action-item i {
-      font-size: 1.5rem;
-      color: #4299e1;
-    }
-
-    .action-item span {
-      font-weight: 500;
-    }
-
-    @media (max-width: 1024px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .bookings-card,
-      .activity-card {
-        grid-column: span 1;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .booking-item {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .booking-actions {
-        width: 100%;
-        justify-content: stretch;
-      }
-
-      .booking-actions button {
-        flex: 1;
-        justify-content: center;
-      }
-
-      .actions-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-  `]
+  styleUrl: './user-dashboard.component.scss',
 })
 export class UserDashboardComponent implements OnInit {
 
@@ -455,6 +71,102 @@ export class UserDashboardComponent implements OnInit {
   totalBookings = 0;
   upcomingTrips = 0;
   completedTrips = 0;
+  loadingCharts = true;
+
+  // Booking History Chart
+  public bookingHistoryChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'Bookings',
+        fill: true,
+        tension: 0.4,
+        borderColor: '#4299e1',
+        backgroundColor: 'rgba(66, 153, 225, 0.2)',
+        pointBackgroundColor: '#4299e1',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#4299e1',
+      }
+    ]
+  };
+
+  public bookingHistoryChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        labels: {
+          color: '#2d3748',
+        }
+      },
+      title: {
+        display: true,
+        text: 'Booking History (Last 6 Months)',
+        color: '#2d3748',
+        font: {
+          size: 16,
+          weight: 'bold' as any
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        bodyColor: '#fff',
+        titleColor: '#fff',
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#718096' },
+        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      },
+      y: {
+        ticks: { color: '#718096' },
+        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      }
+    }
+  };
+
+  // Rewards Points Chart
+  public rewardsChartData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: ['Used Points', 'Available Points'],
+    datasets: [{
+      data: [0, 0],
+      backgroundColor: ['#e53e3e', '#48bb78'],
+      borderColor: '#fff',
+      borderWidth: 2,
+    }]
+  };
+
+  public rewardsChartOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          color: '#2d3748',
+        }
+      },
+      title: {
+        display: true,
+        text: 'Rewards Points Distribution',
+        color: '#2d3748',
+        font: {
+          size: 16,
+          weight: 'bold' as any
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        bodyColor: '#fff',
+        titleColor: '#fff',
+      }
+    }
+  };
 
   constructor(
     private userService: UserService,
@@ -464,38 +176,66 @@ export class UserDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Load user data first, which will then trigger loading stats
+    const userId = this.authservice.getCurrentUserId();
     this.loadUserData();
-    // Load bookings separately
     this.loadBookings();
-    // Activity will be loaded after user data is available
+    // After all data is loaded (or subscriptions complete), set loadingCharts to false
+    // This might need more sophisticated logic if data loading is staggered.
+    // For simplicity, let's assume data loads relatively quickly after user data.
+    // A better approach would be to use forkJoin for charts data as well.
+    forkJoin([
+      this.bookingService.getUserBookings(userId),
+      this.userService.getUserStats(userId || " ")
+    ]).subscribe({
+      next: ([bookings, stats]) => {
+        console.log('Stats response:', stats); // Log the stats for debugging
+
+        // Process bookings for history chart
+        const months = Array.from({length: 6}, (_, i) => {
+          const d = new Date();
+          d.setMonth(d.getMonth() - i);
+          return d.toLocaleString('default', {month: 'short'});
+        }).reverse();
+        const monthlyCounts = new Array(6).fill(0);
+        bookings.forEach(booking => {
+          const bookingDate = new Date(booking.date);
+          const monthDiff = (new Date().getMonth() - bookingDate.getMonth() + 12) % 12;
+          if (monthDiff < 6) {
+            monthlyCounts[monthDiff]++;
+          }
+        });
+        this.bookingHistoryChartData.labels = months;
+        this.bookingHistoryChartData.datasets[0].data = monthlyCounts.reverse();
+
+        // Process stats for rewards chart
+        this.stats = stats;
+        this.rewardsChartData.datasets[0].data = [
+          stats.usedPoints ?? 0, // Fallback to 0 if usedPoints is undefined
+          stats.rewardsPoints ?? 0 // Fallback to 0 if rewardsPoints is undefined
+        ];
+
+        this.loadingCharts = false;
+      },
+      error: (error) => {
+        console.error('Error loading chart data:', error);
+        this.loadingCharts = false;
+        // Optionally display an error message to the user
+        alert('Failed to load chart data. Please try again later.');
+      }
+    });
   }
 
   private loadUserData() {
     this.userService.getCurrentUser().subscribe({
       next: (user: ServiceUser) => {
-        // Convert ServiceUser to the component's User interface
         this.user = {
           id: user.id,
-          name: user.username, // Use username as name
+          name: user.username,
           email: user.email,
           lastLogin: user.lastLogin || new Date()
         };
-        this.loadUserStats(user.id);
       },
       error: (error) => {
-        console.error(error);
-      }
-    });
-  }
-
-  private loadUserStats(userId: string) {
-    this.userService.getUserStats(userId).subscribe({
-      next: (stats : any) => {
-        this.stats = stats;
-        console.log('User stats loaded:', this.stats);
-      },
-      error: (error: any) => {
         console.error(error);
       }
     });
@@ -505,8 +245,6 @@ export class UserDashboardComponent implements OnInit {
     const userId = this.authservice.getCurrentUserId();
     this.bookingService.getUserBookings(userId).subscribe({
       next: (bookings: any) => {
-        //only get booking with active status
-
         this.activeBookings = bookings;
       },
       error: (error: any) => {
@@ -526,7 +264,6 @@ export class UserDashboardComponent implements OnInit {
         }
       });
     } else {
-      // If no user is loaded yet, set up an empty activity list
       this.recentActivity = [];
     }
   }
@@ -539,16 +276,21 @@ export class UserDashboardComponent implements OnInit {
     if (confirm('Are you sure you want to cancel this booking?')) {
       this.bookingService.cancelBooking(bookingId as unknown as any).subscribe({
         next: () => {
-          // Refresh bookings and activity
           this.loadBookings();
           this.loadActivity();
           if (this.user && this.user.id) {
-            this.loadUserStats(this.user.id);
+            this.userService.getUserStats(this.user.id).subscribe({
+              next: (stats: any) => {
+                this.stats = stats;
+              },
+              error: (error: any) => {
+                console.error(error);
+              }
+            });
           }
         },
         error: (error: any) => {
           console.error(error);
-          // Show error message to user
         }
       });
     }

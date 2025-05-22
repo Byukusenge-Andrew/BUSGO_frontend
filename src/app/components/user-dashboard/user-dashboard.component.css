@@ -56,7 +56,7 @@
 }
 .stat-item i {
   font-size: 1.5rem;
-  color: #4299e1;
+  color: var(--primary-red);
 }
 .stat-item .stat-info {
   display: flex;
@@ -96,7 +96,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #4299e1;
+  background: var(--primary-red);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -104,7 +104,7 @@
   transition: background 0.3s ease;
 }
 .new-booking-btn:hover {
-  background: #3182ce;
+  background: #bc8989;
 }
 
 .bookings-list {
@@ -175,7 +175,7 @@
 }
 .booking-actions button.cancel-booking {
   background: #fff5f5;
-  color: #e53e3e;
+  color: #ff0000;
   border: none;
 }
 .booking-actions button.cancel-booking:hover {
@@ -202,7 +202,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #4299e1;
+  background: var(--primary-red);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -210,7 +210,7 @@
   transition: background 0.3s ease;
 }
 .no-bookings .btn-primary:hover {
-  background: #3182ce;
+  background: #bc8989;
 }
 
 .activity-card {
@@ -251,7 +251,7 @@
 }
 .activity-icon.booking {
   background: #ebf8ff;
-  color: #2b6cb0;
+  color: var(--primary-red);
 }
 .activity-icon.cancellation {
   background: #fff5f5;
@@ -315,7 +315,7 @@
 }
 .action-item i {
   font-size: 1.5rem;
-  color: #4299e1;
+  color: var(--primary-red);
 }
 .action-item span {
   font-weight: 500;

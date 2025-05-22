@@ -9,9 +9,15 @@ import {BusBooking} from '../types/auth.types';
 import {AuthService} from './auth.service';
 import { switchMap } from 'rxjs/operators';
 
+interface PopularRoute {
+  routeName: string;
+  bookingCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
+
 export class BookingService {
   private apiUrl = `${environment.apiUrl}/BusBooking`;
 
@@ -273,6 +279,9 @@ export class BookingService {
     // Customize error handling based on error structure (e.g., error.error.message)
     const errorMessage = error.message || 'Server error';
     return throwError(() => new Error(`An error occurred: ${errorMessage}`));
+  }
+  getPopularRoutes(limit: string): Observable<PopularRoute[]> {
+    return this.http.get<PopularRoute[]>(`${this.apiUrl}/popular?limit=${limit}`);
   }
 
 

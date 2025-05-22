@@ -22,6 +22,7 @@ import { ScheduleService, Schedule } from '../../services/schedule.services';
 import { BusService } from '../../services/bus.service';
 import { BusLocation, BusLocationService } from '../../services/bus-location.service';
 import {AuthService} from '../../services/auth.service';
+import {CompanyService} from '../../services/company.services';
 
 @Component({
   selector: 'app-schedule-search',
@@ -139,6 +140,7 @@ import {AuthService} from '../../services/auth.service';
             <div class="result-header">
               <div class="route-name">{{schedule.routeName}}</div>
               <div class="bus-type">{{schedule.busType}}</div>
+
             </div>
             <div class="result-body">
               <div class="time-info">
@@ -418,6 +420,7 @@ export class ScheduleSearchComponent implements OnInit {
     private busService: BusService, // Keep if used elsewhere, otherwise remove
     private router: Router,
     private authservice: AuthService,
+    private companyService: CompanyService,
     private locationService: BusLocationService,
     private snackBar: MatSnackBar // Inject MatSnackBar
   ) {
@@ -452,6 +455,10 @@ export class ScheduleSearchComponent implements OnInit {
       map(value => this._filterLocations(value))
     );
   }
+
+  // private getCompanyName(companyId ): string {
+  //   const Company
+  // }
 
   private _filterLocations(value: any): BusLocation[] {
     if (!value) return this.locations;

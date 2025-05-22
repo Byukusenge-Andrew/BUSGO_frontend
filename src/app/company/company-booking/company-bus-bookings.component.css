@@ -1,0 +1,180 @@
+.company-bookings-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.company-bookings-container h1 {
+  margin-bottom: 20px;
+  color: #3f51b5;
+  font-weight: 500;
+}
+.company-bookings-container .error-card {
+  margin-bottom: 20px;
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+}
+.company-bookings-container .error-card mat-card-content {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+.company-bookings-container .error-card mat-card-content mat-icon {
+  margin-right: 10px;
+}
+.company-bookings-container .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+.company-bookings-container .loading-container p {
+  margin-top: 16px;
+  color: #666;
+}
+.company-bookings-container .filters-card {
+  margin-bottom: 20px;
+}
+.company-bookings-container .filters-card mat-card-content {
+  padding: 10px;
+}
+.company-bookings-container .filters-card .filters-form .filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.company-bookings-container .filters-card .filters-form .filter-row .filter-field {
+  flex: 1;
+  min-width: 150px;
+}
+.company-bookings-container .filters-card .filters-form .filter-row .filter-field.date-range-field {
+  flex: 2;
+  min-width: 250px;
+}
+.company-bookings-container .filters-card .filters-form .filter-row button {
+  margin-left: 8px;
+}
+.company-bookings-container .table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+.company-bookings-container .table-container .mat-table {
+  width: 100%;
+}
+.company-bookings-container .table-container .mat-table .mat-header-cell {
+  font-weight: 600;
+  color: #3f51b5;
+}
+.company-bookings-container .table-container .mat-table .mat-cell {
+  padding: 12px 8px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-id {
+  max-width: 100px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-customer {
+  min-width: 200px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-customer small {
+  color: #666;
+  display: block;
+  font-size: 0.8em;
+}
+.company-bookings-container .table-container .mat-table .mat-column-route {
+  min-width: 150px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-date,
+.company-bookings-container .table-container .mat-table .mat-column-time {
+  min-width: 120px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-seats {
+  max-width: 80px;
+  text-align: center;
+}
+.company-bookings-container .table-container .mat-table .mat-column-amount {
+  min-width: 100px;
+  text-align: right;
+}
+.company-bookings-container .table-container .mat-table .mat-column-status {
+  min-width: 120px;
+}
+.company-bookings-container .table-container .mat-table .mat-column-status .mat-chip-listbox {
+  display: flex;
+  justify-content: center;
+}
+.company-bookings-container .table-container .mat-table .mat-column-actions {
+  min-width: 160px;
+  text-align: center;
+}
+.company-bookings-container .table-container .mat-table .mat-column-actions button {
+  margin: 0 2px;
+}
+.company-bookings-container .table-container .mat-paginator {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+.company-bookings-container .refresh-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+.company-bookings-container .refresh-button-container button {
+  min-width: 160px;
+}
+.company-bookings-container .refresh-button-container button mat-icon {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .company-bookings-container {
+    padding: 16px;
+  }
+  .company-bookings-container .filters-card .filters-form .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .company-bookings-container .filters-card .filters-form .filter-row .filter-field {
+    width: 100%;
+  }
+  .company-bookings-container .filters-card .filters-form .filter-row button {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  .company-bookings-container .table-container .mat-table .mat-header-row, .company-bookings-container .table-container .mat-table .mat-row {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  .company-bookings-container .table-container .mat-table .mat-header-row {
+    display: none;
+  }
+  .company-bookings-container .table-container .mat-table .mat-cell {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .company-bookings-container .table-container .mat-table .mat-cell:before {
+    content: attr(data-label);
+    font-weight: 600;
+    width: 40%;
+    margin-right: 16px;
+  }
+  .company-bookings-container .table-container .mat-table .mat-column-actions {
+    justify-content: flex-start;
+  }
+}
+.status-confirmed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-pending {
+  background-color: #fff8e1;
+  color: #f57c00;
+}
+
+.status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}/*# sourceMappingURL=company-bus-bookings.component.css.map */

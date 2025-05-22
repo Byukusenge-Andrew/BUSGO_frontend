@@ -628,11 +628,11 @@ export class CompanyTicketListComponent implements OnInit {
       const isAsc = sort.direction === 'asc';
       switch (sort.active) {
         case 'id': return compare(a.id, b.id, isAsc);
-        case 'route': return compare(a.routeName, b.routeName, isAsc);
-        case 'departure': return compareDate(a.departureDate, b.departureDate, isAsc);
-        case 'passenger': return compare(a.passengerName, b.passengerName, isAsc);
+        case 'route': return compare(a.route, b.route, isAsc);
+        case 'departure': return compareDate(a.date, b.date, isAsc);
+        case 'passenger': return compare(a.customerName, b.customerName, isAsc);
         case 'status': return compare(a.status, b.status, isAsc);
-        case 'payment': return compare(a.paymentStatus, b.paymentStatus, isAsc);
+        case 'payment': return compare(a.status, b.status, isAsc);
         default: return 0;
       }
     });
@@ -645,7 +645,7 @@ export class CompanyTicketListComponent implements OnInit {
 
   updateStats(): void {
     this.totalTickets = this.tickets.length;
-    this.confirmedTickets = this.tickets.filter(t => t.status === 'CONFIRMED').length;
+    this.confirmedTickets = this.tickets.filter(t => t.status === 'ACTIVE').length;
     this.pendingTickets = this.tickets.filter(t => t.status === 'PENDING').length;
     this.cancelledTickets = this.tickets.filter(t => t.status === 'CANCELLED').length;
   }

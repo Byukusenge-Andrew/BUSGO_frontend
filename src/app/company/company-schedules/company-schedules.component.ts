@@ -53,7 +53,7 @@ import {EditScheduleDialogComponent} from './edit-schedule-dialog/edit-schedule-
     MatAutocompleteModule
   ],
   template: `
-    <div class="sgadas-container">
+    <div class="schedules-container">
       <div class="header">
         <h1>Manage Schedules</h1>
         <button mat-raised-button color="primary" (click)="openAddScheduleDialog()">

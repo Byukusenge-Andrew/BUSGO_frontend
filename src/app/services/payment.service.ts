@@ -34,17 +34,26 @@ export class PaymentService {
     };
   }
 
-  /**
-   * Get all payments with optional filters
-   */
   getAllPayments(filter?: { status?: PaymentStatus, method?: PaymentMethod }): Observable<Payment[]> {
     let params = new HttpParams();
+
+    // Retrieve user from localStorage
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const companyId = user?.companyId;
+
+    // Check if companyId exists
+    if (!companyId) {
+      this.handleError('No company ID found in localStorage', new Error('Missing companyId'));
+      return of([]);
+    }
+
+    // Add filter parameters if provided
     if (filter) {
       if (filter.status) params = params.set('status', filter.status);
       if (filter.method) params = params.set('method', filter.method);
     }
 
-    return this.http.get<any>(`${this.apiUrl}`, { params })
+    return this.http.get<any>(`${environment.apiUrl}/companies/${companyId}/payments`, { params })
       .pipe(
         map(response => {
           const payments = response.data || response;
@@ -56,7 +65,6 @@ export class PaymentService {
         })
       );
   }
-
   /**
    * Get payment by ID
    */

@@ -24,7 +24,7 @@
   transition: background-color 0.2s;
 }
 .navbar .nav-links a:hover {
-  background-color: #f8f9fa;
+  background-color: #5695d3;
 }
 .navbar .nav-links a.active {
   color: #007bff;

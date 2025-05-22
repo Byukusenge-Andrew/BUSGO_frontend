@@ -1,0 +1,47 @@
+.company-add-bus-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.company-add-bus-container mat-card {
+  padding: 0;
+}
+.company-add-bus-container .form-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.company-add-bus-container .form-row .wide-input {
+  flex: 1;
+  min-width: 300px;
+  width: 200%;
+  max-width: none;
+}
+.company-add-bus-container .form-section {
+  margin-bottom: 1.5rem;
+}
+.company-add-bus-container .amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+.company-add-bus-container .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.company-add-bus-container .full-width mat-form-field {
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .company-add-bus-container .form-row .wide-input {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .company-add-bus-container .amenities-grid {
+    grid-template-columns: 1fr;
+  }
+}/*# sourceMappingURL=company-add-bus.component.css.map */

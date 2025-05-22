@@ -7,6 +7,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
+import {MatButton} from '@angular/material/button';
 
 @Component({
   selector: 'app-booking-confirmation',
@@ -19,7 +20,9 @@ import {MatIcon} from '@angular/material/icon';
     MatCard,
     MatDivider,
     MatIcon,
-    RouterLink
+    RouterLink,
+    MatButton
+
   ],
   styleUrls: ['./booking-confirmation.component.scss']
 })
@@ -62,7 +65,7 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   printTicket(): void {
-    window.print();
+   this.router.navigate([`/ticket/${this.bookingId}`])
   }
 
   goToMyBookings(): void {

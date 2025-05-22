@@ -33,6 +33,34 @@
       </div>
     </div>
 
+    <!-- Charts Section -->
+    <mat-card class="charts-card">
+      <mat-card-content>
+        <div *ngIf="loadingCharts" class="charts-loading">
+           <mat-spinner diameter="40"></mat-spinner>
+           <p>Loading charts...</p>
+        </div>
+        <div *ngIf="!loadingCharts" class="chart-grid">
+          <div class="chart-container">
+            <h3>Booking History</h3>
+            <canvas baseChart
+              [data]="bookingHistoryChartData"
+              [options]="bookingHistoryChartOptions"
+              [type]="'line'">
+            </canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Rewards Points</h3>
+            <canvas baseChart
+              [data]="rewardsChartData"
+              [options]="rewardsChartOptions"
+              [type]="'doughnut'">
+            </canvas>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Active Bookings -->
     <div class="bookings-card">
       <div class="card-header">

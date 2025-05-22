@@ -1,0 +1,51 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Company Reports</h1>
+      <p class="subtitle">Generate and download various reports for your company and system data.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" routerLink="/company/dashboard"> <!-- Adjust routerLink as needed -->
+        <mat-icon>arrow_back</mat-icon>
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <mat-card class="report-section">
+      <mat-card-header>
+        <mat-card-title>System-Wide Reports</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Download a comprehensive CSV report containing data for all users and companies in the system.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="downloadUsersCompaniesReport()" [disabled]="isLoadingUsersCompaniesReport">
+          <mat-icon>cloud_download</mat-icon>
+          {{ isLoadingUsersCompaniesReport ? 'Downloading...' : 'Download Users & Companies Report' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="report-section">
+      <mat-card-header>
+        <mat-card-title>Company-Specific Report</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Enter a Company ID to download a specific report for that company. (Ensure backend endpoint is active)</p>
+        <mat-form-field appearance="outline" class="company-id-input">
+          <mat-label>Company ID</mat-label>
+          <input matInput type="number" placeholder="Enter Company ID" [(ngModel)]="companyIdForReport">
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="accent" (click)="downloadCompanySpecificReport()" [disabled]="!companyIdForReport || isLoadingCompanySpecificReport">
+          <mat-icon>cloud_download</mat-icon>
+          {{ isLoadingCompanySpecificReport ? 'Downloading...' : 'Download Company Report' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+
