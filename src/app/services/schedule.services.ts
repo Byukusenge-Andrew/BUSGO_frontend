@@ -55,7 +55,7 @@ export class ScheduleService {
       availableSeats: schedule.availableSeats,
       totalSeats: schedule.totalSeats,
       price: schedule.fare,
-      status: schedule.active ? 'SCHEDULED' : 'CANCELLED',
+      status: schedule.active ? 'SCHEDULED' : 'FINISHED',
       busType: schedule.busType || '',
       companyId: schedule.company?.companyId ?? 0,
       companyName: schedule.company?.companyName ?? 'Unknown', // Use nullish coalescing for safety
@@ -101,6 +101,18 @@ export class ScheduleService {
     return this.http.get<any[]>(this.apiUrl).pipe(
       map((schedules) => {
         console.log('Schedules received:', schedules.length);
+        return schedules.map((schedule) => this.convertSchedule(schedule));
+      })
+    );
+  }
+
+  /**
+   * Gets only active schedules with future departure times
+   */
+  getActiveSchedules(): Observable<Schedule[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/active`).pipe(
+      map((schedules) => {
+        console.log('Active schedules received:', schedules.length);
         return schedules.map((schedule) => this.convertSchedule(schedule));
       })
     );

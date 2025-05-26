@@ -126,14 +126,14 @@ import { CompanyService } from '../../services/company.services';
           <div class="no-results" *ngIf="noResultsFound">
             <div class="no-results-card">
               <i class="fas fa-exclamation-circle"></i>
-              <h3>No Schedules Found</h3>
-              <p>We couldn't find any bus schedules matching your search criteria or no schedules are available.</p>
+              <h3>No Active Bookings Found</h3>
+              <p>No active booking found. Please approach the offices in the bus terminals for assistance.</p>
               <div class="suggestions">
                 <h4>Suggestions:</h4>
                 <ul>
                   <li>Try different dates or locations</li>
                   <li>Check if the route is available</li>
-                  <li>Verify location names are correct</li>
+                  <li>Visit the nearest bus terminal for more options</li>
                 </ul>
               </div>
               <button class="btn btn-secondary" (click)="resetSearch()">New Search</button>
@@ -478,6 +478,34 @@ import { CompanyService } from '../../services/company.services';
     :host ::ng-deep .mat-form-field-outline {
       border-radius: 4px;
     }
+
+    /* Error snackbar styling */
+    .error-snackbar {
+      background-color: #f44336; /* Red color for error */
+      color: white;
+      font-weight: 500;
+      margin: 0 0 1rem 1rem; /* Add some margin from the bottom and right */
+      border-radius: 4px;
+      box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .error-snackbar button {
+      color: white;
+    }
+
+    .mat-mdc-snack-bar-container.error-snackbar .mdc-snackbar__surface {
+      background-color: #f44336 !important;
+      padding: 0 !important;
+      min-width: 0 !important;
+    }
+
+    /* Position the snackbar container */
+    .mat-mdc-snack-bar-container.error-snackbar {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      max-width: 35vw;
+    }
   `],
 })
 export class ScheduleSearchComponent implements OnInit, OnDestroy {
@@ -522,10 +550,30 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error(`[${this.instanceId}] Error fetching locations:`, error);
-        this.snackBar.open('Failed to load locations. Please try again.', 'Close', {
-          duration: 5000,
+
+        let errorMessage = 'Failed to load locations. ';
+
+        if (error.status === 403 || error.status === 401) {
+          errorMessage += 'Authentication required. Please log in again.';
+          // Optionally redirect to login
+          setTimeout(() => {
+            this.router.navigate(['/login'], {
+              queryParams: {
+                returnUrl: this.router.url,
+                sessionExpired: 'true'
+              }
+            });
+          }, 3000);
+        } else {
+          errorMessage += 'Please refresh the page to try again.';
+        }
+
+        this.snackBar.open(errorMessage, 'Dismiss', {
+          duration: 10000,
+          horizontalPosition: 'right',
           verticalPosition: 'bottom',
-          horizontalPosition: 'center',
+          panelClass: ['error-snackbar'],
+          politeness: 'assertive'
         });
       },
     });
@@ -603,15 +651,17 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
       this.snackBar.open('Please fill in all required search fields.', 'Close', {
         duration: 3000,
         verticalPosition: 'bottom',
-        horizontalPosition: 'center',
+        horizontalPosition: 'right',
+        panelClass: ['error-snackbar'],
+        politeness: 'assertive'
       });
       this.searchForm.markAllAsTouched();
       return;
     }
 
     this.loading = true;
-    this.searched = true;
     this.searchResults = [];
+    this.searched = true;
 
     const sourceLocation = this.searchForm.get('from')?.value;
     const destLocation = this.searchForm.get('to')?.value;
@@ -621,7 +671,9 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
       this.snackBar.open('Please select valid locations from the dropdown list.', 'Close', {
         duration: 3000,
         verticalPosition: 'bottom',
-        horizontalPosition: 'center',
+        horizontalPosition: 'right',
+        panelClass: ['error-snackbar'],
+        politeness: 'assertive'
       });
       this.loading = false;
       this.searched = false;
@@ -632,7 +684,9 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
       this.snackBar.open('Please select a valid date.', 'Close', {
         duration: 3000,
         verticalPosition: 'bottom',
-        horizontalPosition: 'center',
+        horizontalPosition: 'right',
+        panelClass: ['error-snackbar'],
+        politeness: 'assertive'
       });
       this.loading = false;
       this.searched = false;
@@ -661,13 +715,17 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
           this.snackBar.open('No schedules found for the selected criteria.', 'Close', {
             duration: 3000,
             verticalPosition: 'bottom',
-            horizontalPosition: 'center',
+            horizontalPosition: 'right',
+            panelClass: ['error-snackbar'],
+            politeness: 'assertive'
           });
         } else {
           this.snackBar.open(`Found ${schedules.length} schedules.`, 'Close', {
             duration: 3000,
             verticalPosition: 'bottom',
-            horizontalPosition: 'center',
+            horizontalPosition: 'right',
+            panelClass: ['error-snackbar'],
+            politeness: 'assertive'
           });
         }
       },
@@ -679,7 +737,9 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
           {
             duration: 5000,
             verticalPosition: 'bottom',
-            horizontalPosition: 'center',
+            horizontalPosition: 'right',
+            panelClass: ['error-snackbar'],
+            politeness: 'assertive'
           }
         );
         this.loading = false;
@@ -689,49 +749,35 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
   }
 
   loadAllSchedules() {
-    console.log(`[${this.instanceId}] Load all schedules triggered`);
-    if (this.loading) {
-      console.log(`[${this.instanceId}] Load all schedules blocked: already loading`);
-      return;
-    }
+    console.log(`[${this.instanceId}] Loading all schedules`);
     this.loading = true;
-    this.searched = true;
-    this.noResultsFound = false;
     this.searchResults = [];
-    this.searchForm.reset({ sortBy: 'departureTime', from: '', to: '', date: new Date() });
+    this.noResultsFound = false;
 
-    this.scheduleService.getAllSchedules().pipe(
+    // Use getActiveSchedules instead of getAllSchedules to only show valid schedules
+    this.scheduleService.getActiveSchedules().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (schedules: Schedule[]) => {
-        console.log(`[${this.instanceId}] All schedules:`, schedules);
-        this.searchResults = this.sortResults(schedules, this.searchForm.get('sortBy')?.value);
-        console.log(`[${this.instanceId}] Rendered searchResults length:`, this.searchResults.length);
-        this.checkResultsGridCount();
-        this.loading = false;
-        this.noResultsFound = this.searchResults.length === 0;
-        if (!this.noResultsFound) {
-          this.snackBar.open(`Loaded ${schedules.length} schedules.`, 'Close', {
-            duration: 3000,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center',
-          });
+        console.log(`[${this.instanceId}] Loaded ${schedules.length} schedules`);
+        if (schedules.length === 0) {
+          this.noResultsFound = true;
+        } else {
+          // Apply sorting
+          const sortBy = this.searchForm.get('sortBy')?.value || 'departureTime';
+          this.searchResults = this.sortResults(schedules, sortBy);
+          this.searched = true;
         }
+        this.loading = false;
+        this.checkResultsGridCount();
       },
       error: (error: any) => {
-        console.error(`[${this.instanceId}] Error loading all schedules:`, error);
-        this.snackBar.open(
-          `Error loading schedules: ${error.message || 'Unknown error'}`,
-          'Close',
-          {
-            duration: 5000,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center',
-          }
-        );
+        console.error(`[${this.instanceId}] Error loading schedules:`, error);
         this.loading = false;
         this.noResultsFound = true;
-      },
+        this.searched = true;
+        this.checkResultsGridCount();
+      }
     });
   }
 
@@ -823,7 +869,9 @@ export class ScheduleSearchComponent implements OnInit, OnDestroy {
       this.snackBar.open('Please log in to book a schedule.', 'Close', {
         duration: 3000,
         verticalPosition: 'bottom',
-        horizontalPosition: 'center',
+        horizontalPosition: 'right',
+        panelClass: ['error-snackbar'],
+        politeness: 'assertive'
       });
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;

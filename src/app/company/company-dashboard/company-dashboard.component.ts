@@ -242,7 +242,7 @@ interface RecentBooking {
                     <button mat-stroked-button color="primary" routerLink="/company/routes/add">
                     <mat-icon>add_road</mat-icon> Add New Route
                     </button>
-                    <button mat-stroked-button color="accent" routerLink="/company/schedules/add">
+                    <button mat-stroked-button color="accent" routerLink="/company/schedules">
                       <mat-icon>add_task</mat-icon> Create Schedule
                     </button>
                     <button mat-stroked-button routerLink="/company/reports">

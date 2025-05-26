@@ -85,7 +85,7 @@ import {EditScheduleDialogComponent} from './edit-schedule-dialog/edit-schedule-
               <mat-select (selectionChange)="filterByStatus($event)">
                 <mat-option value="">All Statuses</mat-option>
                 <mat-option value="SCHEDULED">Scheduled</mat-option>
-                <mat-option value="CANCELLED">Cancelled</mat-option>
+                <mat-option value="FINISHED">FINISHED</mat-option>
               </mat-select>
             </mat-form-field>
 

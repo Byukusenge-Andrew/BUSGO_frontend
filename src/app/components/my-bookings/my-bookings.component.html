@@ -26,7 +26,17 @@
       </mat-card>
     </div>
 
-    <div *ngIf="bookings.length > 0">
+    <div *ngIf="bookings.length > 0 && !hasActiveBookings" class="no-bookings-container">
+      <mat-card appearance="outlined">
+        <mat-card-content class="no-bookings-content">
+          <mat-icon color="warn">warning</mat-icon>
+          <p>No active bookings found. Please approach the offices in the bus terminals for assistance.</p>
+          <button mat-raised-button color="primary" routerLink="/schedule-search">Book a New Bus</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div *ngIf="bookings.length > 0 && hasActiveBookings">
       <!-- Pagination size selector -->
       <div class="pagination-controls">
         <div class="page-size-selector">
@@ -83,7 +93,7 @@
                 <mat-icon matListItemIcon>schedule</mat-icon>
               </mat-list-item>
               <mat-list-item>
-                <span matListItemTitle>{{ getCompanyName(booking.companyId) | async }}</span>
+                <span matListItemTitle>{{ booking.companyName }}</span>
                 <span matListItemLine>Company</span>
                 <mat-icon matListItemIcon>business</mat-icon>
               </mat-list-item>
@@ -120,15 +130,15 @@
         </mat-card>
       </div>
 
-      <!-- Pagination controls -->
-      <mat-paginator
-        [length]="totalItems"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        [pageIndex]="currentPage"
-        (page)="onPageChange($event)"
-        aria-label="Select page">
-      </mat-paginator>
+<!--      &lt;!&ndash; Pagination controls &ndash;&gt;-->
+<!--      <mat-paginator-->
+<!--        [length]="totalItems"-->
+<!--        [pageSize]="pageSize"-->
+<!--        [pageSizeOptions]="pageSizeOptions"-->
+<!--        [pageIndex]="currentPage"-->
+<!--        (page)="onPageChange($event)"-->
+<!--        aria-label="Select page">-->
+<!--      </mat-paginator>-->
     </div>
   </div>
 </div>

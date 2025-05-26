@@ -62,6 +62,7 @@ export class BookingService {
       transactionId: backendBooking.transactionId || undefined,
       companyId: backendBooking.schedule?.company?.id?.toString(),
       scheduleId: backendBooking.schedule?.id?.toString(),
+      companyName: backendBooking.companyName || backendBooking.schedule?.company?.companyName || 'Unknown Company',
       busName: backendBooking.schedule?.bus?.registrationNumber || backendBooking.schedule?.busNumber || 'Unknown Bus',
       time: backendBooking.schedule?.departureTime || 'Unknown Time',
       totalAmount: backendBooking.totalFare || 0

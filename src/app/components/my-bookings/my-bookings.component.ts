@@ -2,34 +2,33 @@ import { Component, OnInit } from '@angular/core';
 import { BookingService, PaginatedBookings } from '../../services/bus-booking.service';
 import { AuthService } from '../../services/auth.service';
 import { Booking } from '../../models/booking.model';
-import { DatePipe, NgClass, NgForOf, NgIf, CurrencyPipe, AsyncPipe } from '@angular/common'; 
+import { DatePipe, NgClass, NgForOf, NgIf, CurrencyPipe, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MatProgressSpinner } from '@angular/material/progress-spinner'; 
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card'; 
-import { MatIcon } from '@angular/material/icon'; 
-import { MatButton } from '@angular/material/button'; 
-import { MatChip, MatChipListbox } from '@angular/material/chips'; 
-import { MatDivider } from '@angular/material/divider'; 
-import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitle } from '@angular/material/list'; 
-import { MatPaginator } from '@angular/material/paginator'; 
-import { MatFormField, MatLabel } from '@angular/material/form-field'; 
-import { MatSelect, MatOption } from '@angular/material/select'; 
-import { FormsModule } from '@angular/forms'; 
-import { CompanyService } from '../../services/company.services'; 
-import { Observable, of } from 'rxjs'; 
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatChip, MatChipListbox } from '@angular/material/chips';
+import { MatDivider } from '@angular/material/divider';
+import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitle } from '@angular/material/list';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
+import { CompanyService } from '../../services/company.services';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-my-bookings',
-  standalone: true, 
+  standalone: true,
   templateUrl: './my-bookings.component.html',
   imports: [
     DatePipe,
-    CurrencyPipe, 
+    CurrencyPipe,
     RouterLink,
     NgIf,
     NgForOf,
     FormsModule,
-    AsyncPipe, 
 
     MatProgressSpinner,
     MatCard,
@@ -45,10 +44,9 @@ import { Observable, of } from 'rxjs';
     MatDivider,
     MatList,
     MatListItem,
-    MatListItemIcon, 
-    MatListItemTitle, 
-    MatListItemLine, 
-    MatPaginator,
+    MatListItemIcon,
+    MatListItemTitle,
+    MatListItemLine,
     MatFormField,
     MatLabel,
     MatSelect,
@@ -60,15 +58,16 @@ export class MyBookingsComponent implements OnInit {
   bookings: Booking[] = [];
   loading = false;
   error = '';
-  cancellingId: string | null = null; 
-  
+  cancellingId: string | null = null;
+
   companyNames: Map<string, Observable<string>> = new Map();
-  
+
   totalItems = 0;
   pageSize = 10;
   pageSizeOptions = [5, 10, 25, 50];
   currentPage = 0;
   totalPages = 0;
+  hasActiveBookings = false;
 
   constructor(
     private bookingService: BookingService,
@@ -84,30 +83,29 @@ export class MyBookingsComponent implements OnInit {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.error = 'User ID not available. Please log in.';
-      this.loading = false; 
+      this.loading = false;
       return;
     }
 
     this.loading = true;
     this.error = '';
-    this.cancellingId = null; 
-    this.companyNames.clear(); 
+    this.cancellingId = null;
+    this.companyNames.clear();
 
     this.bookingService.getUserBookingsPaginated(userId, this.currentPage, this.pageSize).subscribe({
       next: (response: PaginatedBookings) => {
         this.bookings = response.content;
         this.totalItems = response.totalElements;
         this.totalPages = response.totalPages;
-        
-        this.bookings.forEach(booking => {
-          if (booking.companyId) {
-            this.companyNames.set(
-              booking.companyId.toString(),
-              this.companyService.getCompanyName(booking.companyId)
-            );
-          }
-        });
-        
+
+        // We no longer need to fetch company names separately as they are included in the booking data
+        // The companyName field will be populated directly from the backend response
+
+        // Check if there are any active bookings (CONFIRMED or PENDING status)
+        this.hasActiveBookings = this.bookings.some(booking =>
+          booking.status === 'CONFIRMED' || booking.status === 'PENDING'
+        );
+
         this.loading = false;
       },
       error: (err) => {
@@ -119,15 +117,17 @@ export class MyBookingsComponent implements OnInit {
   }
 
   getCompanyName(companyId: string | number | undefined): Observable<string> {
+    // If the booking already has a company name, return it directly
+    // This will be used as a fallback in case the booking doesn't have a company name
     if (!companyId) {
       return of('Unknown Company');
     }
-    
+
     const key = companyId.toString();
     if (!this.companyNames.has(key)) {
       this.companyNames.set(key, this.companyService.getCompanyName(companyId));
     }
-    
+
     return this.companyNames.get(key) || of('Unknown Company');
   }
 
@@ -136,8 +136,8 @@ export class MyBookingsComponent implements OnInit {
       return;
     }
 
-    this.cancellingId = bookingId; 
-    this.error = ''; 
+    this.cancellingId = bookingId;
+    this.error = '';
 
     this.bookingService.cancelBooking(bookingId).subscribe({
       next: () => {
@@ -145,13 +145,13 @@ export class MyBookingsComponent implements OnInit {
         if (booking) {
           booking.status = 'CANCELLED';
         }
-        this.cancellingId = null; 
+        this.cancellingId = null;
         // Optionally, add a success message/toast
       },
       error: (err) => {
         console.error('Error cancelling booking:', err);
         this.error = err.message || 'Failed to cancel booking';
-        this.cancellingId = null; 
+        this.cancellingId = null;
       }
     });
   }
@@ -159,18 +159,18 @@ export class MyBookingsComponent implements OnInit {
   getStatusChipColor(status: string): 'primary' | 'warn' | 'accent' {
     switch (status?.toUpperCase()) {
       case 'CONFIRMED':
-        return 'primary'; 
+        return 'primary';
       case 'CANCELLED':
-        return 'warn'; 
+        return 'warn';
       case 'PENDING':
-        return 'accent'; 
+        return 'accent';
       default:
-        return 'accent'; 
+        return 'accent';
     }
   }
 
   refreshBookings(): void {
-    this.loadBookings(); 
+    this.loadBookings();
   }
 
   onPageChange(event: any): void {
@@ -180,7 +180,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   onPageSizeChange(): void {
-    this.currentPage = 0; 
+    this.currentPage = 0;
     this.loadBookings();
   }
 }
