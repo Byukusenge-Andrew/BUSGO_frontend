@@ -1,30 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { BookingService } from '../../services/bus-booking.service';
+import { BookingService, PaginatedBookings } from '../../services/bus-booking.service';
 import { AuthService } from '../../services/auth.service';
 import { Booking } from '../../models/booking.model';
-import { DatePipe, NgClass, NgForOf, NgIf, CurrencyPipe } from '@angular/common'; // Added CurrencyPipe
+import { DatePipe, NgClass, NgForOf, NgIf, CurrencyPipe, AsyncPipe } from '@angular/common'; 
 import { RouterLink } from '@angular/router';
-import { MatProgressSpinner } from '@angular/material/progress-spinner'; // Keep if used standalone
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card'; // Import Card components
-import { MatIcon } from '@angular/material/icon'; // Import Icon
-import { MatButton } from '@angular/material/button'; // Import Button
-import { MatChip, MatChipListbox } from '@angular/material/chips'; // Import Chip components
-import { MatDivider } from '@angular/material/divider'; // Import Divider
-import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitle } from '@angular/material/list'; // Import List components
+import { MatProgressSpinner } from '@angular/material/progress-spinner'; 
+import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card'; 
+import { MatIcon } from '@angular/material/icon'; 
+import { MatButton } from '@angular/material/button'; 
+import { MatChip, MatChipListbox } from '@angular/material/chips'; 
+import { MatDivider } from '@angular/material/divider'; 
+import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitle } from '@angular/material/list'; 
+import { MatPaginator } from '@angular/material/paginator'; 
+import { MatFormField, MatLabel } from '@angular/material/form-field'; 
+import { MatSelect, MatOption } from '@angular/material/select'; 
+import { FormsModule } from '@angular/forms'; 
+import { CompanyService } from '../../services/company.services'; 
+import { Observable, of } from 'rxjs'; 
 
 @Component({
   selector: 'app-my-bookings',
-  standalone: true, // Assuming standalone component based on previous context
+  standalone: true, 
   templateUrl: './my-bookings.component.html',
   imports: [
-    // Common Angular Modules
     DatePipe,
-    CurrencyPipe, // Add CurrencyPipe here
+    CurrencyPipe, 
     RouterLink,
     NgIf,
     NgForOf,
+    FormsModule,
+    AsyncPipe, 
 
-    // Angular Material Modules (Standalone Components)
     MatProgressSpinner,
     MatCard,
     MatCardHeader,
@@ -39,10 +45,14 @@ import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitl
     MatDivider,
     MatList,
     MatListItem,
-    MatListItemIcon, // If using icons inside list items
-    MatListItemTitle, // If using titles inside list items
-    MatListItemLine // If using lines inside list items
-
+    MatListItemIcon, 
+    MatListItemTitle, 
+    MatListItemLine, 
+    MatPaginator,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption
   ],
   styleUrls: ['./my-bookings.component.scss']
 })
@@ -50,11 +60,20 @@ export class MyBookingsComponent implements OnInit {
   bookings: Booking[] = [];
   loading = false;
   error = '';
-  cancellingId: string | null = null; // To track which booking cancellation is in progress
+  cancellingId: string | null = null; 
+  
+  companyNames: Map<string, Observable<string>> = new Map();
+  
+  totalItems = 0;
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 25, 50];
+  currentPage = 0;
+  totalPages = 0;
 
   constructor(
     private bookingService: BookingService,
-    private authService: AuthService
+    private authService: AuthService,
+    private companyService: CompanyService
   ) { }
 
   ngOnInit(): void {
@@ -65,27 +84,51 @@ export class MyBookingsComponent implements OnInit {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.error = 'User ID not available. Please log in.';
-      this.loading = false; // Stop loading if no user ID
+      this.loading = false; 
       return;
     }
 
     this.loading = true;
     this.error = '';
-    this.cancellingId = null; // Reset cancelling state on load
+    this.cancellingId = null; 
+    this.companyNames.clear(); 
 
-    this.bookingService.getUserBookings(userId).subscribe({
-      next: (data) => {
-        // Sort bookings, e.g., by date descending (most recent first)
-        this.bookings = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    this.bookingService.getUserBookingsPaginated(userId, this.currentPage, this.pageSize).subscribe({
+      next: (response: PaginatedBookings) => {
+        this.bookings = response.content;
+        this.totalItems = response.totalElements;
+        this.totalPages = response.totalPages;
+        
+        this.bookings.forEach(booking => {
+          if (booking.companyId) {
+            this.companyNames.set(
+              booking.companyId.toString(),
+              this.companyService.getCompanyName(booking.companyId)
+            );
+          }
+        });
+        
         this.loading = false;
       },
       error: (err) => {
         console.error('Error loading bookings:', err);
-        // Use the error message from the service if available
         this.error = err.message || 'Failed to load your bookings';
         this.loading = false;
       }
     });
+  }
+
+  getCompanyName(companyId: string | number | undefined): Observable<string> {
+    if (!companyId) {
+      return of('Unknown Company');
+    }
+    
+    const key = companyId.toString();
+    if (!this.companyNames.has(key)) {
+      this.companyNames.set(key, this.companyService.getCompanyName(companyId));
+    }
+    
+    return this.companyNames.get(key) || of('Unknown Company');
   }
 
   cancelBooking(bookingId: string): void {
@@ -93,43 +136,51 @@ export class MyBookingsComponent implements OnInit {
       return;
     }
 
-    this.cancellingId = bookingId; // Set cancelling state for this specific booking
-    this.error = ''; // Clear previous errors
+    this.cancellingId = bookingId; 
+    this.error = ''; 
 
     this.bookingService.cancelBooking(bookingId).subscribe({
       next: () => {
-        // Update the status in the local array optimistically
         const booking = this.bookings.find(b => b.id === bookingId);
         if (booking) {
           booking.status = 'CANCELLED';
         }
-        this.cancellingId = null; // Reset cancelling state on success
+        this.cancellingId = null; 
         // Optionally, add a success message/toast
       },
       error: (err) => {
         console.error('Error cancelling booking:', err);
         this.error = err.message || 'Failed to cancel booking';
-        this.cancellingId = null; // Reset cancelling state on error
+        this.cancellingId = null; 
       }
     });
   }
 
-  // This method might not be directly needed if chip color is handled in the template,
-  // but kept for potential reuse or more complex logic.
   getStatusChipColor(status: string): 'primary' | 'warn' | 'accent' {
     switch (status?.toUpperCase()) {
       case 'CONFIRMED':
-        return 'primary'; // Or 'accent' if you prefer green-like
+        return 'primary'; 
       case 'CANCELLED':
-        return 'warn'; // Red
+        return 'warn'; 
       case 'PENDING':
-        return 'accent'; // Amber/Orange like
+        return 'accent'; 
       default:
-        return 'accent'; // Default color
+        return 'accent'; 
     }
   }
 
   refreshBookings(): void {
-    this.loadBookings(); // Reload data
+    this.loadBookings(); 
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadBookings();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 0; 
+    this.loadBookings();
   }
 }

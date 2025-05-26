@@ -1,6 +1,5 @@
-
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -12,6 +11,16 @@ import { switchMap } from 'rxjs/operators';
 interface PopularRoute {
   routeName: string;
   bookingCount: number;
+}
+
+export interface PaginatedBookings {
+  content: Booking[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
 @Injectable({
@@ -172,17 +181,41 @@ export class BookingService {
 
   getUserBookings(userId: string | null): Observable<Booking[]> {
     if (!userId) {
-      console.error('User ID is null for getUserBookings');
-      return throwError(() => new Error('User ID cannot be null'));
+      console.error("User ID is required to get bookings");
+      return throwError(() => new Error("User ID is required to get bookings"));
     }
-    const parsedId = Number(userId);
-    if (isNaN(parsedId)) {
-      console.error('Invalid user ID for get bookings:', userId);
-      return throwError(() => new Error('Invalid user ID'));
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/GetBookingsByUser?userId=${parsedId}`)
+
+    return this.http.get<any[]>(`${this.apiUrl}/GetBookingsByUser?userId=${userId}`)
       .pipe(
         map(bookings => bookings.map(booking => this.convertBooking(booking))),
+        catchError(this.handleError)
+      );
+  }
+
+  getUserBookingsPaginated(userId: string | null, page: number = 0, size: number = 10): Observable<PaginatedBookings> {
+    if (!userId) {
+      console.error("User ID is required to get bookings");
+      return throwError(() => new Error("User ID is required to get bookings"));
+    }
+
+    const params = new HttpParams()
+      .set('userId', userId)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<any>(`${this.apiUrl}/GetBookingsByUserPaginated`, { params })
+      .pipe(
+        map(response => {
+          return {
+            content: response.content.map((booking: any) => this.convertBooking(booking)),
+            totalElements: response.totalElements,
+            totalPages: response.totalPages,
+            size: response.size,
+            number: response.number,
+            first: response.first,
+            last: response.last
+          };
+        }),
         catchError(this.handleError)
       );
   }

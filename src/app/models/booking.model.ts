@@ -16,6 +16,7 @@ export interface Booking {
   transactionId?: string;
   companyId?: string | number;
   scheduleId?:string | number,
+  companyName?: string;
 
   // Additional properties needed for my-bookings component
   busName?: string;

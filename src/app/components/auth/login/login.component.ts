@@ -209,6 +209,9 @@ export class LoginComponent {
         window.location.href = '/dashboard';
       },
       error: (error) => {
+        if(error.status == 400){
+          this.error ='invalid username o password';
+        }
         this.error = error.message || 'Login failed. Please check your credentials.';
         this.loading = false;
       }

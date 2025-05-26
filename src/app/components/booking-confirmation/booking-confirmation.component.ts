@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import { BookingService } from '../../services/bus-booking.service';
 import { Booking } from '../../models/booking.model';
-import {CurrencyPipe, formatDate, NgIf} from '@angular/common';
+import {CurrencyPipe, formatDate, NgIf, AsyncPipe} from '@angular/common';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatDivider} from '@angular/material/list';
 import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
+import { CompanyService } from '../../services/company.services';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-booking-confirmation',
@@ -21,8 +23,8 @@ import {MatButton} from '@angular/material/button';
     MatDivider,
     MatIcon,
     RouterLink,
-    MatButton
-
+    MatButton,
+    AsyncPipe
   ],
   styleUrls: ['./booking-confirmation.component.scss']
 })
@@ -31,11 +33,13 @@ export class BookingConfirmationComponent implements OnInit {
   booking: Booking | null = null;
   loading = true;
   error = '';
+  companyName$: Observable<string> = of('Unknown Company');
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private bookingService: BookingService
+    private bookingService: BookingService,
+    private companyService: CompanyService
   ) { }
 
   ngOnInit(): void {
@@ -55,6 +59,11 @@ export class BookingConfirmationComponent implements OnInit {
       next: (data) => {
         this.booking = data;
         this.loading = false;
+        
+        // Fetch company name if companyId is available
+        if (this.booking.companyId) {
+          this.companyName$ = this.companyService.getCompanyName(this.booking.companyId);
+        }
       },
       error: (err) => {
         console.error('Error loading booking:', err);

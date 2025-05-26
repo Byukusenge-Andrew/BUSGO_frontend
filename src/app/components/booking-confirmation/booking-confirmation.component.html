@@ -1,4 +1,3 @@
-
 <div class="confirmation-container">
   <div *ngIf="loading" class="loading-spinner">
     <mat-spinner diameter="40"></mat-spinner>
@@ -34,6 +33,10 @@
           <div class="detail-item">
             <span class="label">Route:</span>
             <span class="value">{{ booking.routeName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Company:</span>
+            <span class="value">{{ companyName$ | async }}</span>
           </div>
           <div class="detail-item">
             <span class="label">Date:</span>
@@ -77,7 +80,7 @@
           <button mat-raised-button color="primary" (click)="printTicket()">
             <mat-icon>print</mat-icon> Print Ticket
           </button>
-          <button mat-raised-button color="accent" [routerLink]="['/payment', booking.id]" *ngIf="booking?.status !== 'PAID'">
+          <button mat-raised-button color="accent" [routerLink]="['/payment', booking.id]" *ngIf="booking?.paymentStatus !== 'CONFIRMED'">
             <mat-icon>credit_card</mat-icon> Pay Now
           </button>
           <button mat-stroked-button routerLink="/my-bookings">
