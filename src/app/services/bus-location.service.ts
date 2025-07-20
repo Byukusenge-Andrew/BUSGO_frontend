@@ -51,6 +51,7 @@ export class BusLocationService {
   getAllLocations(): Observable<BusLocation[]> {
     return this.http.get<any[]>(this.apiUrl)
       .pipe(map(locations => locations.map(location => this.convertLocation(location))));
+
   }
 
   getLocationById(id: number): Observable<BusLocation> {

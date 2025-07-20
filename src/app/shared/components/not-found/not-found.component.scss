@@ -6,53 +6,131 @@
   min-height: calc(100vh - 64px); // Adjust based on your header height
   padding: 2rem;
   text-align: center;
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #ff0000, #dc2626);
+    z-index: 1;
+  }
 
   .content {
+    max-width: 600px;
     margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
 
-    h1 {
-      font-size: 6rem;
-      font-weight: 700;
-      color: #007bff;
+    .error-code {
+      font-size: 8rem;
+      font-weight: 900;
+      color: #ff0000;
       margin: 0;
       line-height: 1;
+      text-shadow: 3px 3px 0 #dc2626,
+      6px 6px 0 rgba(220, 38, 38, 0.3);
+      position: relative;
+      display: inline-block;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 10%;
+        width: 80%;
+        height: 5px;
+        background: linear-gradient(90deg, transparent, #ff0000, transparent);
+        border-radius: 50%;
+      }
     }
 
-    h2 {
-      font-size: 2rem;
-      color: #343a40;
+    h1 {
+      font-size: 2.5rem;
+      color: #1e293b;
       margin: 1rem 0;
+      font-weight: 700;
     }
 
     p {
-      color: #6c757d;
+      color: #64748b;
       margin-bottom: 2rem;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      line-height: 1.6;
     }
 
-    button {
-      padding: 0.75rem 1.5rem 0.75rem ;
-      margin-right:20px;
-      font-size: 1rem;
-      color: white;
-      background-color: #007bff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
 
-      &:hover {
-        background-color: #0056b3;
+      button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+
+        &:first-child {
+          background-color: #ff0000;
+          color: white;
+          box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+
+          &:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 0, 0, 0.4);
+          }
+        }
+
+        &:last-child {
+          border: 2px solid #ff0000;
+          color: #ff0000;
+
+          &:hover {
+            background-color: rgba(255, 0, 0, 0.1);
+            transform: translateY(-2px);
+          }
+        }
       }
     }
   }
 
   .illustration {
-    color: #dee2e6;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
     animation: float 6s ease-in-out infinite;
-    font-size: 10rem;
-    height: 200;
+    position: relative;
+    z-index: 2;
+
+    svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+    }
+
+    .bus {
+      animation: shake 3s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .cloud1 {
+      animation: moveCloud 20s linear infinite;
+    }
+
+    .cloud2 {
+      animation: moveCloud 30s linear infinite reverse;
+    }
   }
 }
 
@@ -68,14 +146,84 @@
   }
 }
 
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px) rotate(-1deg);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px) rotate(1deg);
+  }
+}
+
+@keyframes moveCloud {
+  0% {
+    transform: translateX(-100px);
+  }
+  100% {
+    transform: translateX(600px);
+  }
+}
+
+// Material Design Overrides
+:host ::ng-deep .mat-mdc-raised-button.mat-primary {
+  --mdc-filled-button-container-color: #ff0000;
+  --mdc-filled-button-label-text-color: #ffffff;
+}
+
+:host ::ng-deep .mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-outline-color: #ff0000;
+  --mdc-outlined-button-label-text-color: #ff0000;
+}
+
+// Responsive Design
 @media (min-width: 768px) {
   .not-found-container {
     flex-direction: row;
-    gap: 4rem;
+    gap: 2rem;
+    padding: 3rem;
+    text-align: left;
 
     .content {
       margin-bottom: 0;
-      text-align: left;
+
+      .error-code {
+        font-size: 10rem;
+      }
+
+      .buttons {
+        justify-content: flex-start;
+      }
+    }
+
+    .illustration {
+      max-width: 600px;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .not-found-container {
+    padding: 2rem 1rem;
+
+    .content {
+      .error-code {
+        font-size: 6rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1.1rem;
+      }
+    }
+
+    .illustration {
+      margin-top: 2rem;
     }
   }
 }

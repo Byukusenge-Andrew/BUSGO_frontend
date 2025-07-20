@@ -26,18 +26,18 @@ import { AuthService } from '../../services/auth.service';
     <mat-toolbar color="primary" class="header">
       <div class="header-container">
         <div class="logo-container">
-        <div class="logo">
-          <a routerLink="/">
-            <!-- <span class="brand-name">BUSGO</span>
-            <span class="brand-country">Rwanda</span> -->
-            <img alt="busgolog0" src="../../../assets/images/logo.png" width="90" height="80">
+          <div class="logo">
+            <a routerLink="/">
+              <!-- <span class="brand-name">BUSGO</span>
+              <span class="brand-country">Rwanda</span> -->
+              <img alt="busgolog0" src="../../../assets/images/logo.png" width="90" height="80">
 
-          </a>
-        </div>
+            </a>
+          </div>
         </div>
 
         <div class="nav-links" *ngIf="!isLoggedIn">
-<!--          <a mat-button routerLink="/search">Find Buses</a>-->
+          <!--          <a mat-button routerLink="/search">Find Buses</a>-->
           <a mat-button routerLink="/company/login">CompanyLogin</a>
           <a mat-button routerLink="/routes">Routes</a>
           <a mat-button routerLink="/login">Login</a>
@@ -46,7 +46,7 @@ import { AuthService } from '../../services/auth.service';
 
         <!-- Regular User Navigation -->
         <div class="nav-links" *ngIf="isLoggedIn && userType === 'user'">
-<!--          <a mat-button routerLink="/search">Find Buses</a>-->
+          <!--          <a mat-button routerLink="/search">Find Buses</a>-->
           <a mat-button routerLink="/my-bookings">My Bookings</a>
           <a mat-button routerLink="/schedule-search">Search</a>
           <a mat-button routerLink="/dashboard">Dashboard</a>

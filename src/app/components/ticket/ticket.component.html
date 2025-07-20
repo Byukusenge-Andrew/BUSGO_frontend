@@ -1,20 +1,23 @@
 <div class="ticket-container">
-  <!-- Toolbar -->
+  <!-- Enhanced Toolbar -->
   <mat-toolbar color="primary" class="ticket-toolbar">
-    <button mat-icon-button (click)="goBack()">
+    <button mat-icon-button (click)="goBack()" matTooltip="Go Back">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span>Ticket Details</span>
     <span class="spacer"></span>
-    <button mat-icon-button (click)="printTicket()" [disabled]="isLoading || errorMessage">
+    <button mat-icon-button (click)="downloadTicket()" [disabled]="isLoading || errorMessage" matTooltip="Download PDF">
+      <mat-icon>download</mat-icon>
+    </button>
+    <button mat-icon-button (click)="printTicket()" [disabled]="isLoading || errorMessage" matTooltip="Print Ticket">
       <mat-icon>print</mat-icon>
     </button>
-    <button mat-icon-button (click)="shareTicket()" [disabled]="isLoading || errorMessage">
+    <button mat-icon-button (click)="shareTicket()" [disabled]="isLoading || errorMessage" matTooltip="Share Ticket">
       <mat-icon>share</mat-icon>
     </button>
   </mat-toolbar>
 
-  <!-- Main Card -->
+  <!-- Enhanced Main Card -->
   <mat-card class="ticket-card">
     <mat-card-header>
       <mat-card-title>Booking #{{ ticket?.id || 'N/A' }}</mat-card-title>
@@ -22,87 +25,121 @@
     </mat-card-header>
 
     <mat-card-content>
-      <!-- Loading State with Placeholder -->
+      <!-- Enhanced Loading State -->
       <div *ngIf="isLoading" class="loading-container">
-        <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+        <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
+        <p>Loading your ticket details...</p>
         <mat-list role="list">
-          <mat-list-item *ngFor="let _ of [1, 2, 3, 4, 5]">
+          <mat-list-item *ngFor="let _ of [1, 2, 3, 4, 5, 6]">
             <div class="loading-placeholder"></div>
           </mat-list-item>
         </mat-list>
       </div>
 
-      <!-- Error State -->
+      <!-- Enhanced Error State -->
       <div *ngIf="errorMessage" class="error-container">
         <mat-error>{{ errorMessage }}</mat-error>
+        <button mat-raised-button color="primary" (click)="retryLoading()" style="margin-top: 1rem;">
+          <mat-icon>refresh</mat-icon>
+          Try Again
+        </button>
       </div>
 
-      <!-- Ticket Details -->
+      <!-- Enhanced Ticket Details -->
       <div *ngIf="ticket && !isLoading && !errorMessage">
         <mat-list role="list">
           <!-- Route Section -->
           <mat-list-item role="listitem">
-            <span matListItemTitle>Route</span>
-            <span matListItemLine>{{ ticket.routeName || 'N/A' }}</span>
-            <span matListItemLine>{{ ticket.from || 'N/A' }} → {{ ticket.to || 'N/A' }}</span>
+            <span matListItemTitle>Route Information</span>
+            <span matListItemLine><strong>Route:</strong> {{ ticket.routeName || 'N/A' }}</span>
+            <span matListItemLine><strong>Journey:</strong> {{ ticket.from || 'N/A' }} → {{ ticket.to || 'N/A' }}</span>
+            <span matListItemLine *ngIf="ticket.distance"><strong>Distance:</strong> {{ ticket.distance }} km</span>
           </mat-list-item>
           <mat-divider></mat-divider>
 
           <!-- Travel Details -->
           <mat-list-item role="listitem">
             <span matListItemTitle>Travel Details</span>
-            <span matListItemLine>Date: {{ ticket.date | date:'mediumDate' }}</span>
-            <span matListItemLine>Time: {{ ticket.time || ticket.departureTime }} - {{ ticket.arrivalTime }}</span>
-            <span matListItemLine>Bus: {{ ticket.busName || 'N/A' }}</span>
+            <span matListItemLine><strong>Date:</strong> {{ ticket.date | date:'fullDate' }}</span>
+            <span matListItemLine><strong>Departure:</strong> {{ ticket.time || ticket.departureTime }}</span>
+            <span matListItemLine *ngIf="ticket.arrivalTime"><strong>Arrival:</strong> {{ ticket.arrivalTime }}</span>
+            <span matListItemLine><strong>Bus:</strong> {{ ticket.busName || 'N/A' }}</span>
+            <span matListItemLine *ngIf="ticket.busNumber"><strong>Bus Number:</strong> {{ ticket.busNumber }}</span>
           </mat-list-item>
           <mat-divider></mat-divider>
 
           <!-- Seats -->
           <mat-list-item role="listitem">
-            <span matListItemTitle>Seats</span>
-            <span matListItemLine>Count: {{ ticket.seats }}</span>
-            <span matListItemLine>Numbers: {{ ticket.seatNumbers || 'N/A' }}</span>
+            <span matListItemTitle>Seat Information</span>
+            <span matListItemLine><strong>Number of Seats:</strong> {{ ticket.seats }}</span>
+            <span matListItemLine><strong>Seat Numbers:</strong> {{ ticket.seatNumbers || 'N/A' }}</span>
+            <span matListItemLine *ngIf="ticket.seatType"><strong>Seat Type:</strong> {{ ticket.seatType }}</span>
           </mat-list-item>
           <mat-divider></mat-divider>
 
           <!-- Status -->
           <mat-list-item role="listitem">
-            <span matListItemTitle>Status</span>
+            <span matListItemTitle>Booking Status</span>
             <mat-chip-listbox>
               <mat-chip [color]="getStatusColor(ticket.status)" selected>
                 {{ ticket.status }}
               </mat-chip>
             </mat-chip-listbox>
-            <span matListItemLine *ngIf="ticket.paymentStatus">Payment: {{ ticket.paymentStatus }}</span>
+            <span matListItemLine *ngIf="ticket.paymentStatus"><strong>Payment Status:</strong> {{ ticket.paymentStatus }}</span>
+            <span matListItemLine *ngIf="ticket.bookingDate"><strong>Booked On:</strong> {{ ticket.bookingDate | date:'medium' }}</span>
           </mat-list-item>
           <mat-divider></mat-divider>
 
           <!-- Customer -->
           <mat-list-item role="listitem">
-            <span matListItemTitle>Customer</span>
-            <span matListItemLine>{{ ticket.customerName }}</span>
-            <span matListItemLine>{{ ticket.customerEmail }}</span>
-            <span matListItemLine>{{ ticket.customerPhone || 'N/A' }}</span>
+            <span matListItemTitle>Passenger Details</span>
+            <span matListItemLine><strong>Name:</strong> {{ ticket.customerName }}</span>
+            <span matListItemLine><strong>Email:</strong> {{ ticket.customerEmail }}</span>
+            <span matListItemLine *ngIf="ticket.customerPhone"><strong>Phone:</strong> {{ ticket.customerPhone }}</span>
+            <span matListItemLine *ngIf="ticket.age"><strong>Age:</strong> {{ ticket.age }} years</span>
           </mat-list-item>
           <mat-divider></mat-divider>
 
           <!-- Payment -->
           <mat-list-item role="listitem">
-            <span matListItemTitle>Payment</span>
-            <span matListItemLine>Amount: {{ ticket.totalAmount || ticket.amount | currency }}</span>
-            <span matListItemLine *ngIf="ticket.paymentMethod">Method: {{ ticket.paymentMethod }}</span>
-            <span matListItemLine *ngIf="ticket.transactionId">Transaction ID: {{ ticket.transactionId }}</span>
+            <span matListItemTitle>Payment Information</span>
+            <span matListItemLine><strong>Total Amount:</strong> {{ ticket.totalAmount || ticket.amount | currency }}</span>
+            <span matListItemLine *ngIf="ticket.basePrice"><strong>Base Price:</strong> {{ ticket.basePrice | currency }}</span>
+            <span matListItemLine *ngIf="ticket.taxes"><strong>Taxes & Fees:</strong> {{ ticket.taxes | currency }}</span>
+            <span matListItemLine *ngIf="ticket.paymentMethod"><strong>Payment Method:</strong> {{ ticket.paymentMethod }}</span>
+            <span matListItemLine *ngIf="ticket.transactionId"><strong>Transaction ID:</strong> {{ ticket.transactionId }}</span>
+            <span matListItemLine *ngIf="ticket.paymentDate"><strong>Payment Date:</strong> {{ ticket.paymentDate | date:'medium' }}</span>
           </mat-list-item>
         </mat-list>
+
+        <!-- QR Code Section (if available) -->
+        <div *ngIf="ticket.qrCode" style="text-align: center; padding: 2rem; background: #f8fafc; margin: 1rem 2rem; border-radius: 12px;">
+          <h3 style="margin-bottom: 1rem; color: #1e293b;">Quick Access QR Code</h3>
+          <img [src]="ticket.qrCode" alt="Ticket QR Code" style="max-width: 200px; border-radius: 8px;">
+          <p style="margin-top: 1rem; color: #64748b; font-size: 0.875rem;">Scan this code for quick ticket verification</p>
+        </div>
       </div>
     </mat-card-content>
 
-    <!-- Actions -->
-    <mat-card-actions *ngIf="ticket && !isLoading && !errorMessage && ticket.status !== 'CANCELLED'">
-      <button mat-raised-button color="warn" (click)="cancelBooking()" [disabled]="isCanceling">
-        <mat-icon>cancel</mat-icon>
-        {{ isCanceling ? 'Canceling...' : 'Cancel Booking' }}
-      </button>
+    <!-- Enhanced Actions -->
+    <mat-card-actions *ngIf="ticket && !isLoading && !errorMessage">
+      <div style="display: flex; gap: 1rem; width: 100%; justify-content: center; flex-wrap: wrap;">
+        <button mat-raised-button color="primary" (click)="modifyBooking()" [disabled]="ticket.status === 'CANCELLED' || !canModify()">
+          <mat-icon>edit</mat-icon>
+          Modify Booking
+        </button>
+        <button mat-raised-button color="warn" (click)="cancelBooking()"
+                [disabled]="isCanceling || ticket.status === 'CANCELLED' || !canCancel()"
+                *ngIf="ticket.status !== 'CANCELLED'">
+          <mat-icon>cancel</mat-icon>
+          {{ isCanceling ? 'Canceling...' : 'Cancel Booking' }}
+        </button>
+        <button mat-raised-button color="accent" (click)="requestRefund()"
+                *ngIf="ticket.status === 'CANCELLED' && ticket.paymentStatus === 'PAID'">
+          <mat-icon>money</mat-icon>
+          Request Refund
+        </button>
+      </div>
     </mat-card-actions>
   </mat-card>
 </div>

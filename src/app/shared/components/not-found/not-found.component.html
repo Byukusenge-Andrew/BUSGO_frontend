@@ -1,25 +1,95 @@
 <div class="not-found-container">
   <div class="content">
-    <h1>404</h1>
-    <h2>Page Not Found</h2>
-    <p>The page you are looking for doesn't exist or has been moved.</p>
-    <button routerLink="/">Back to Home</button>
-    <!-- go one step back -->
-    <button (click)="goBack()">Go Back</button>
+    <div class="error-code">404</div>
+    <h1>Page Not Found</h1>
+    <p>Oops! The bus route you're looking for doesn't exist or has been moved.</p>
+
+    <div class="buttons">
+      <button mat-raised-button color="primary" routerLink="/">
+        <mat-icon>home</mat-icon>
+        Back to Home
+      </button>
+      <button mat-stroked-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Go Back
+      </button>
+    </div>
   </div>
+
   <div class="illustration">
-    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="400" height="200" style="margin-top: 20px;">
-        <rect x="30" y="10" width="40" height="30" rx="10" fill="#3b82f6" />
-        <circle cx="40" cy="20" r="3" fill="#ffffff" />
-        <circle cx="60" cy="20" r="3" fill="#ffffff" />
-        <rect x="20" y="40" width="60" height="50" rx="10" fill="#e5e7eb" />
-        <rect x="30" y="90" width="10" height="20" rx="5" fill="#e5e7eb" />
-        <rect x="60" y="90" width="10" height="20" rx="5" fill="#e5e7eb" />
-        <rect x="10" y="50" width="10" height="20" rx="5" fill="#e5e7eb" />
-        <rect x="80" y="50" width="10" height="20" rx="5" fill="#e5e7eb" />
-        <text x="50" y="65" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#3b82f6" text-anchor="middle" dominant-baseline="middle">404</text>
-        <path d="M 40 75 Q 50 85 60 75" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" />
-      </svg> -->
-      <img src="robot.svg" alt="404 Illustration" width="400" height="400" style="margin-top: 20px;">
+    <!-- Custom Bus 404 SVG Illustration -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="100%" height="100%">
+      <!-- Road -->
+      <rect x="0" y="300" width="500" height="20" fill="#333333" />
+      <rect x="20" y="310" width="40" height="5" fill="#ffffff" />
+      <rect x="100" y="310" width="40" height="5" fill="#ffffff" />
+      <rect x="180" y="310" width="40" height="5" fill="#ffffff" />
+      <rect x="260" y="310" width="40" height="5" fill="#ffffff" />
+      <rect x="340" y="310" width="40" height="5" fill="#ffffff" />
+      <rect x="420" y="310" width="40" height="5" fill="#ffffff" />
+
+      <!-- Bus Body -->
+      <g class="bus">
+        <!-- Main Body -->
+        <rect x="100" y="180" width="300" height="120" rx="20" fill="#ff0000" />
+
+        <!-- Windows -->
+        <rect x="120" y="200" width="40" height="40" rx="5" fill="#d6f5ff" />
+        <rect x="170" y="200" width="40" height="40" rx="5" fill="#d6f5ff" />
+        <rect x="220" y="200" width="40" height="40" rx="5" fill="#d6f5ff" />
+        <rect x="270" y="200" width="40" height="40" rx="5" fill="#d6f5ff" />
+        <rect x="320" y="200" width="40" height="40" rx="5" fill="#d6f5ff" />
+
+        <!-- Door -->
+        <rect x="340" y="250" width="40" height="50" rx="5" fill="#333333" />
+        <line x1="360" y1="250" x2="360" y2="300" stroke="#555555" stroke-width="2" />
+
+        <!-- Headlights -->
+        <circle cx="100" cy="270" r="10" fill="#ffff99" />
+        <circle cx="400" cy="270" r="10" fill="#ffff99" />
+
+        <!-- Wheels -->
+        <circle cx="150" cy="300" r="30" fill="#333333" />
+        <circle cx="150" cy="300" r="20" fill="#666666" />
+        <circle cx="150" cy="300" r="10" fill="#999999" />
+
+        <circle cx="350" cy="300" r="30" fill="#333333" />
+        <circle cx="350" cy="300" r="20" fill="#666666" />
+        <circle cx="350" cy="300" r="10" fill="#999999" />
+
+        <!-- 404 Sign on Bus -->
+        <rect x="180" y="130" width="140" height="50" rx="10" fill="#ffffff" stroke="#ff0000" stroke-width="5" />
+        <text x="250" y="165" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#ff0000" text-anchor="middle">404</text>
+      </g>
+
+      <!-- Clouds -->
+      <g class="cloud cloud1">
+        <ellipse cx="100" cy="100" rx="30" ry="20" fill="#ffffff" />
+        <ellipse cx="70" cy="100" rx="20" ry="15" fill="#ffffff" />
+        <ellipse cx="130" cy="100" rx="20" ry="15" fill="#ffffff" />
+      </g>
+
+      <g class="cloud cloud2">
+        <ellipse cx="400" cy="70" rx="30" ry="20" fill="#ffffff" />
+        <ellipse cx="370" cy="70" rx="20" ry="15" fill="#ffffff" />
+        <ellipse cx="430" cy="70" rx="20" ry="15" fill="#ffffff" />
+      </g>
+
+      <!-- Sun -->
+      <circle cx="50" cy="50" r="30" fill="#ffcc00" />
+      <line x1="50" y1="10" x2="50" y2="0" stroke="#ffcc00" stroke-width="4" />
+      <line x1="50" y1="90" x2="50" y2="100" stroke="#ffcc00" stroke-width="4" />
+      <line x1="10" y1="50" x2="0" y2="50" stroke="#ffcc00" stroke-width="4" />
+      <line x1="90" y1="50" x2="100" y2="50" stroke="#ffcc00" stroke-width="4" />
+      <line x1="22" y1="22" x2="15" y2="15" stroke="#ffcc00" stroke-width="4" />
+      <line x1="78" y1="78" x2="85" y2="85" stroke="#ffcc00" stroke-width="4" />
+      <line x1="22" y1="78" x2="15" y2="85" stroke="#ffcc00" stroke-width="4" />
+      <line x1="78" y1="22" x2="85" y2="15" stroke="#ffcc00" stroke-width="4" />
+
+      <!-- Question Marks -->
+      <text x="150" y="250" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#ffffff" text-anchor="middle">?</text>
+      <text x="250" y="250" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#ffffff" text-anchor="middle">?</text>
+      <text x="320" y="230" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#ffffff" text-anchor="middle">?</text>
+    </svg>
   </div>
 </div>

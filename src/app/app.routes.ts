@@ -17,7 +17,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { SupportComponent } from './components/support/support.component';
 import { TicketComponent } from './components/ticket/ticket.component';
-
+import {NotFoundComponent} from './shared/components/not-found/not-found.component';
 import { MyBookingsComponent } from './components/my-bookings/my-bookings.component';
 
 import { CompanyDashboardComponent } from './company/company-dashboard/company-dashboard.component';
@@ -104,6 +104,10 @@ export const routes: Routes = [
     component: UserPaymentComponent,
     canActivate: [userGuard]
   },
+  {
+    path:'not-found',component: NotFoundComponent
+  }
+  ,
   { path: 'my-bookings', component: MyBookingsComponent,canActivate:[userGuard] },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: 'not-found', pathMatch: 'full' }
 ];

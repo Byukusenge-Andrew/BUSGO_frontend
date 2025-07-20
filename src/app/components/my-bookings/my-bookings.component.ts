@@ -11,9 +11,10 @@ import { MatButton } from '@angular/material/button';
 import { MatChip, MatChipListbox } from '@angular/material/chips';
 import { MatDivider } from '@angular/material/divider';
 import { MatList, MatListItem, MatListItemIcon, MatListItemLine, MatListItemTitle } from '@angular/material/list';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect, MatOption } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { CompanyService } from '../../services/company.services';
 import { Observable, of } from 'rxjs';
@@ -29,7 +30,6 @@ import { Observable, of } from 'rxjs';
     NgIf,
     NgForOf,
     FormsModule,
-
     MatProgressSpinner,
     MatCard,
     MatCardHeader,
@@ -41,7 +41,6 @@ import { Observable, of } from 'rxjs';
     MatButton,
     MatChipListbox,
     MatChip,
-    MatDivider,
     MatList,
     MatListItem,
     MatListItemIcon,
@@ -50,7 +49,9 @@ import { Observable, of } from 'rxjs';
     MatFormField,
     MatLabel,
     MatSelect,
-    MatOption
+    MatOption,
+    MatPaginator,
+    MatTooltip
   ],
   styleUrls: ['./my-bookings.component.scss']
 })
@@ -82,7 +83,7 @@ export class MyBookingsComponent implements OnInit {
   loadBookings(): void {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
-      this.error = 'User ID not available. Please log in.';
+      this.error = 'User authentication required. Please log in to view your bookings.';
       this.loading = false;
       return;
     }
@@ -98,9 +99,6 @@ export class MyBookingsComponent implements OnInit {
         this.totalItems = response.totalElements;
         this.totalPages = response.totalPages;
 
-        // We no longer need to fetch company names separately as they are included in the booking data
-        // The companyName field will be populated directly from the backend response
-
         // Check if there are any active bookings (CONFIRMED or PENDING status)
         this.hasActiveBookings = this.bookings.some(booking =>
           booking.status === 'CONFIRMED' || booking.status === 'PENDING'
@@ -110,15 +108,27 @@ export class MyBookingsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading bookings:', err);
-        this.error = err.message || 'Failed to load your bookings';
+        this.error = this.getErrorMessage(err);
         this.loading = false;
       }
     });
   }
 
+  private getErrorMessage(err: any): string {
+    if (err.status === 401 || err.status === 403) {
+      return 'Authentication expired. Please log in again to view your bookings.';
+    } else if (err.status === 404) {
+      return 'Booking service is currently unavailable. Please try again later.';
+    } else if (err.status === 500) {
+      return 'Server error occurred. Our team has been notified. Please try again later.';
+    } else if (!navigator.onLine) {
+      return 'No internet connection. Please check your network and try again.';
+    } else {
+      return err.message || 'Failed to load your bookings. Please try again.';
+    }
+  }
+
   getCompanyName(companyId: string | number | undefined): Observable<string> {
-    // If the booking already has a company name, return it directly
-    // This will be used as a fallback in case the booking doesn't have a company name
     if (!companyId) {
       return of('Unknown Company');
     }
@@ -132,7 +142,13 @@ export class MyBookingsComponent implements OnInit {
   }
 
   cancelBooking(bookingId: string): void {
-    if (!confirm('Are you sure you want to cancel this booking?')) {
+    // Enhanced confirmation dialog
+    const booking = this.bookings.find(b => b.id === bookingId);
+    const confirmMessage = booking
+      ? `Are you sure you want to cancel your booking for "${booking.routeName}" on ${new Date(booking.date).toLocaleDateString()}?\n\nThis action cannot be undone.`
+      : 'Are you sure you want to cancel this booking? This action cannot be undone.';
+
+    if (!confirm(confirmMessage)) {
       return;
     }
 
@@ -144,16 +160,34 @@ export class MyBookingsComponent implements OnInit {
         const booking = this.bookings.find(b => b.id === bookingId);
         if (booking) {
           booking.status = 'CANCELLED';
+          // Update hasActiveBookings status
+          this.hasActiveBookings = this.bookings.some(b =>
+            b.status === 'CONFIRMED' || b.status === 'PENDING'
+          );
         }
         this.cancellingId = null;
-        // Optionally, add a success message/toast
+
+        // Show success message (you might want to add a snackbar service)
+        console.log('Booking cancelled successfully');
       },
       error: (err) => {
         console.error('Error cancelling booking:', err);
-        this.error = err.message || 'Failed to cancel booking';
+        this.error = this.getCancellationErrorMessage(err);
         this.cancellingId = null;
       }
     });
+  }
+
+  private getCancellationErrorMessage(err: any): string {
+    if (err.status === 400) {
+      return 'This booking cannot be cancelled. It may be too close to departure time or already processed.';
+    } else if (err.status === 404) {
+      return 'Booking not found. It may have already been cancelled or modified.';
+    } else if (err.status === 409) {
+      return 'Booking cancellation failed due to a conflict. Please contact customer support.';
+    } else {
+      return err.message || 'Failed to cancel booking. Please try again or contact customer support.';
+    }
   }
 
   getStatusChipColor(status: string): 'primary' | 'warn' | 'accent' {
@@ -163,6 +197,7 @@ export class MyBookingsComponent implements OnInit {
       case 'CANCELLED':
         return 'warn';
       case 'PENDING':
+      case 'PROCESSING':
         return 'accent';
       default:
         return 'accent';
@@ -173,14 +208,57 @@ export class MyBookingsComponent implements OnInit {
     this.loadBookings();
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadBookings();
   }
 
   onPageSizeChange(): void {
-    this.currentPage = 0;
+    this.currentPage = 0; // Reset to first page when changing page size
     this.loadBookings();
+  }
+
+  // Track by function for better performance
+  trackByBookingId(index: number, booking: Booking): string {
+    return booking.id;
+  }
+
+  // Helper method to check if booking can be cancelled
+  canCancelBooking(booking: Booking): boolean {
+    if (booking.status !== 'CONFIRMED' && booking.status !== 'PENDING') {
+      return false;
+    }
+
+    // Check if booking is within cancellation window (e.g., 2 hours before departure)
+    const travelDate = new Date(booking.date);
+    const now = new Date();
+    const hoursDifference = (travelDate.getTime() - now.getTime()) / (1000 * 3600);
+
+    return hoursDifference > 2; // Can cancel if more than 2 hours before travel
+  }
+
+  // Helper method to check if payment is required
+  requiresPayment(booking: Booking): boolean {
+    return booking.paymentStatus !== 'COMPLETED' &&
+           booking.paymentStatus !== 'PAID' &&
+           booking.status !== 'CANCELLED';
+  }
+
+  // Helper method to get payment status display text
+  getPaymentStatusText(paymentStatus: string): string {
+    switch (paymentStatus?.toUpperCase()) {
+      case 'COMPLETED':
+      case 'PAID':
+        return 'Paid';
+      case 'PENDING':
+        return 'Payment Pending';
+      case 'FAILED':
+        return 'Payment Failed';
+      case 'REFUNDED':
+        return 'Refunded';
+      default:
+        return 'Payment Required';
+    }
   }
 }

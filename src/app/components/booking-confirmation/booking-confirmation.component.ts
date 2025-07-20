@@ -59,7 +59,7 @@ export class BookingConfirmationComponent implements OnInit {
       next: (data) => {
         this.booking = data;
         this.loading = false;
-        
+
         // Fetch company name if companyId is available
         if (this.booking.companyId) {
           this.companyName$ = this.companyService.getCompanyName(this.booking.companyId);
