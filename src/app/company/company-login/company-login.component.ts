@@ -165,11 +165,22 @@ export class CompanyLoginComponent {
       const { email, password } = this.loginForm.value;
       this.authService.companyLogin(email, password).subscribe({
         next: () => {
+          this.loading = false;
           this.router.navigate(['/company/dashboard']);
         },
         error: (error) => {
-          this.errorMessage = error.error || 'Invalid credentials';
           this.loading = false;
+          if (error.status === 400) {
+            this.errorMessage = 'Invalid email or password';
+          } else if (error.status === 401) {
+            this.errorMessage = 'Invalid credentials. Please check your email and password.';
+          } else if (error.status === 403) {
+            this.errorMessage = 'Access denied. Your company account may be disabled.';
+          } else if (error.status === 500) {
+            this.errorMessage = 'Server error. Please try again later.';
+          } else {
+            this.errorMessage = error.error?.message || 'Invalid credentials';
+          }
         }
       });
     }

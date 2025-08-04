@@ -20,7 +20,7 @@
         <div>
           <h3>Oops! Something went wrong</h3>
           <span>{{ error }}</span>
-          <button mat-raised-button color="primary" (click)="refreshBookings()" style="margin-top: 1rem;">
+          <button mat-raised-button color="primary" (click)="refreshBookings()" class="refresh-btn">
             <mat-icon>refresh</mat-icon>
             Try Again
           </button>
@@ -118,36 +118,41 @@
 
           <!-- Enhanced Card Content -->
           <mat-card-content class="booking-details">
-            <mat-list dense>
+            <mat-list>
               <mat-list-item>
                 <mat-icon matListItemIcon>person</mat-icon>
                 <span matListItemTitle>{{ booking.customerName }}</span>
                 <span matListItemLine>Passenger Name</span>
               </mat-list-item>
+              <mat-divider></mat-divider>
 
               <mat-list-item>
                 <mat-icon matListItemIcon>event</mat-icon>
                 <span matListItemTitle>{{ booking.date | date:'EEEE, MMMM d, y' }}</span>
                 <span matListItemLine>Travel Date</span>
               </mat-list-item>
+              <mat-divider></mat-divider>
 
               <mat-list-item>
                 <mat-icon matListItemIcon>schedule</mat-icon>
                 <span matListItemTitle>{{ booking.departureTime }} → {{ booking.arrivalTime }}</span>
                 <span matListItemLine>Journey Time</span>
               </mat-list-item>
+              <mat-divider></mat-divider>
 
               <mat-list-item>
                 <mat-icon matListItemIcon>business</mat-icon>
                 <span matListItemTitle>{{ booking.companyName || 'Bus Company' }}</span>
                 <span matListItemLine>Operator</span>
               </mat-list-item>
+              <mat-divider></mat-divider>
 
               <mat-list-item>
                 <mat-icon matListItemIcon>airline_seat_recline_normal</mat-icon>
                 <span matListItemTitle>{{ booking.seats }} seat{{ booking.seats !== 1 ? 's' : '' }} ({{ booking.seatNumbers }})</span>
                 <span matListItemLine>Seat Details</span>
               </mat-list-item>
+              <mat-divider></mat-divider>
 
               <mat-list-item>
                 <mat-icon matListItemIcon>payments</mat-icon>
@@ -155,11 +160,14 @@
                 <span matListItemLine>Total Amount</span>
               </mat-list-item>
 
-              <mat-list-item *ngIf="booking.paymentStatus">
-                <mat-icon matListItemIcon>credit_card</mat-icon>
-                <span matListItemTitle>{{ booking.paymentStatus }}</span>
-                <span matListItemLine>Payment Status</span>
-              </mat-list-item>
+              <div *ngIf="booking.paymentStatus">
+                <mat-divider></mat-divider>
+                <mat-list-item>
+                  <mat-icon matListItemIcon>credit_card</mat-icon>
+                  <span matListItemTitle>{{ booking.paymentStatus }}</span>
+                  <span matListItemLine>Payment Status</span>
+                </mat-list-item>
+              </div>
             </mat-list>
           </mat-card-content>
 

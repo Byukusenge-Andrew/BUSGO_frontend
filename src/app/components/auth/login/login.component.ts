@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 
@@ -180,6 +180,19 @@ import { AuthService } from '../../../services/auth.service';
         text-decoration: underline;
       }
     }
+
+    .alert {
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+
+    .alert-danger {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
   `]
 })
 export class LoginComponent {
@@ -189,7 +202,10 @@ export class LoginComponent {
   loading: boolean = false;
   error: string | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   isFormValid(): boolean {
     return this.email.length > 0 && this.password.length > 0;
@@ -206,14 +222,21 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
-        window.location.href = '/dashboard';
+        this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        if(error.status == 400){
-          this.error ='invalid username o password';
-        }
-        this.error = error.message || 'Login failed. Please check your credentials.';
         this.loading = false;
+        if (error.status === 400) {
+          this.error = 'Invalid username or password';
+        } else if (error.status === 401) {
+          this.error = 'Invalid credentials. Please check your email and password.';
+        } else if (error.status === 403) {
+          this.error = 'Access denied. Your account may be disabled.';
+        } else if (error.status === 500) {
+          this.error = 'Server error. Please try again later.';
+        } else {
+          this.error = error.error?.message || 'Login failed. Please check your credentials.';
+        }
       }
     });
   }

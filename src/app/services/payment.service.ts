@@ -200,6 +200,50 @@ export class PaymentService {
   }
 
   /**
+   * Process a payment
+   */
+  processPayment(paymentId: number, paymentMethod: string, transactionId: string): Observable<Payment> {
+    const payload = {
+      paymentId: paymentId,
+      paymentMethod: paymentMethod,
+      transactionId: transactionId
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/process`, payload).pipe(
+      map(response => this.convertPayment(response.data || response)),
+      tap(payment => {
+        this.snackBar.open(`Payment processed successfully - Transaction ID: ${payment.transactionId}`, 'Close', { duration: 4000 });
+      }),
+      catchError(error => {
+        console.error('Process payment error:', error);
+        this.handleError('Failed to process payment', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Refund a payment
+   */
+  refundPayment(paymentId: number, reason?: string): Observable<Payment> {
+    const payload = {
+      reason: reason || 'Refund requested by user'
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/${paymentId}/refund`, payload).pipe(
+      map(response => this.convertPayment(response.data || response)),
+      tap(payment => {
+        this.snackBar.open(`Payment refunded successfully - Amount: ${payment.amount}`, 'Close', { duration: 4000 });
+      }),
+      catchError(error => {
+        console.error('Refund payment error:', error);
+        this.handleError('Failed to refund payment', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
    * Update a payment
    */
   updatePayment(paymentId: number, paymentData: UpdatePaymentDto): Observable<Payment> {

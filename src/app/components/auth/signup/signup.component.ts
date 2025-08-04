@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, SignupData } from '../../../services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -317,7 +317,10 @@ export class SignupComponent {
   private readonly specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
   private readonly numberRegex = /\d/;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   get hasMinLength(): boolean {
     return this.password.length >= 8;
@@ -375,16 +378,20 @@ export class SignupComponent {
     this.authService.signup(signupData).subscribe({
       next: () => {
         this.loading = false;
-        window.location.href = '/dashboard'; // Redirect to login page after successful signup
-
-
+        this.router.navigate(['/login']); // Redirect to login page after successful signup
       },
       
       error: (err: HttpErrorResponse) => {
         this.loading = false;
         console.log(err);
-        if (err.status === 403) {
+        if (err.status === 400) {
+          this.error = err.error?.message || 'Invalid registration data. Please check your information.';
+        } else if (err.status === 403) {
           this.error = 'You do not have permission to perform this action. Please contact support if you believe this is an error.';
+        } else if (err.status === 409) {
+          this.error = 'An account with this email or username already exists.';
+        } else if (err.status === 500) {
+          this.error = 'Server error. Please try again later.';
         } else if (err.error?.message) {
           this.error = err.error.message;
         } else {

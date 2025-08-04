@@ -123,6 +123,8 @@ export class MyBookingsComponent implements OnInit {
       return 'Server error occurred. Our team has been notified. Please try again later.';
     } else if (!navigator.onLine) {
       return 'No internet connection. Please check your network and try again.';
+    } else if (err.error?.message) {
+      return err.error.message;
     } else {
       return err.message || 'Failed to load your bookings. Please try again.';
     }
@@ -145,37 +147,27 @@ export class MyBookingsComponent implements OnInit {
     // Enhanced confirmation dialog
     const booking = this.bookings.find(b => b.id === bookingId);
     const confirmMessage = booking
-      ? `Are you sure you want to cancel your booking for "${booking.routeName}" on ${new Date(booking.date).toLocaleDateString()}?\n\nThis action cannot be undone.`
-      : 'Are you sure you want to cancel this booking? This action cannot be undone.';
+      ? `Are you sure you want to cancel your booking for "${booking.routeName}" on ${new Date(booking.date).toLocaleDateString()}?\n\nThis action cannot be undone and may be subject to cancellation fees.`
+      : 'Are you sure you want to cancel this booking? This action cannot be undone and may be subject to cancellation fees.';
 
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
-    this.cancellingId = bookingId;
-    this.error = '';
-
-    this.bookingService.cancelBooking(bookingId).subscribe({
-      next: () => {
-        const booking = this.bookings.find(b => b.id === bookingId);
-        if (booking) {
-          booking.status = 'CANCELLED';
-          // Update hasActiveBookings status
-          this.hasActiveBookings = this.bookings.some(b =>
-            b.status === 'CONFIRMED' || b.status === 'PENDING'
-          );
+    if (confirm(confirmMessage)) {
+      this.loading = true;
+      this.bookingService.cancelBooking(bookingId).subscribe({
+        next: () => {
+          // Show success message
+          if (booking) {
+            console.log(`Booking ${booking.routeName} cancelled successfully`);
+          }
+          // Reload bookings to reflect the change
+          this.loadBookings();
+        },
+        error: (err: any) => {
+          console.error('Error cancelling booking:', err);
+          this.error = `Failed to cancel booking: ${this.getErrorMessage(err)}`;
+          this.loading = false;
         }
-        this.cancellingId = null;
-
-        // Show success message (you might want to add a snackbar service)
-        console.log('Booking cancelled successfully');
-      },
-      error: (err) => {
-        console.error('Error cancelling booking:', err);
-        this.error = this.getCancellationErrorMessage(err);
-        this.cancellingId = null;
-      }
-    });
+      });
+    }
   }
 
   private getCancellationErrorMessage(err: any): string {
