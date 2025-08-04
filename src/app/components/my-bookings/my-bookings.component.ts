@@ -51,7 +51,8 @@ import { Observable, of } from 'rxjs';
     MatSelect,
     MatOption,
     MatPaginator,
-    MatTooltip
+    MatTooltip,
+    MatDivider
   ],
   styleUrls: ['./my-bookings.component.scss']
 })
